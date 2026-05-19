@@ -1,0 +1,48 @@
+@*
+    Renders the auto-generated clientCustomerId input as readonly with:
+    - "Auto-generated" badge
+    - Copy + Regenerate buttons
+    - Optional datalist of existing customer ids from wallets
+
+    Pass model parameters via ViewData:
+      ViewData["AspFor"]        - property name on the parent model (e.g. "ClientCustomerId")
+      ViewData["CurrentValue"]  - the current auto-generated value
+      ViewData["HelpKey"]       - cj-help key (e.g. "iban.clientCustomerId")
+      ViewData["RegenerateUrl"] - URL to GET to regenerate (current action with ?regenerate=1)
+      ViewData["ExistingIds"]   - optional IEnumerable<string> for datalist
+      ViewData["Optional"]      - "true" if input may be cleared
+*@
+@{
+    var aspFor = (string?)ViewData["AspFor"] ?? "ClientCustomerId";
+    var currentValue = (string?)ViewData["CurrentValue"] ?? "";
+    var helpKey = (string?)ViewData["HelpKey"] ?? "shared.clientCustomerId";
+    var regenerateUrl = (string?)ViewData["RegenerateUrl"] ?? "?regenerate=1";
+    var existing = (IEnumerable<string>?)ViewData["ExistingIds"] ?? Enumerable.Empty<string>();
+    var optional = string.Equals((string?)ViewData["Optional"], "true", StringComparison.OrdinalIgnoreCase);
+    var listId = $"ccid-list-{Guid.NewGuid():N}".Substring(0, 12);
+}
+<div class="cj-auto-id">
+    <div class="input-group">
+        <span class="input-group-text auto-badge" title="System-generated client-side identifier">AUTO</span>
+        <input type="text" name="@aspFor" id="@aspFor" value="@currentValue"
+               class="form-control cj-auto-id-input"
+               readonly
+               list="@listId"
+               aria-describedby="@(aspFor)-help" />
+        <a href="@regenerateUrl" class="btn btn-outline-secondary" title="Generate a new clientCustomerId">↻</a>
+        <button type="button" class="btn btn-outline-secondary cj-copy-btn"
+                data-copy-target="@aspFor" title="Copy to clipboard">⧉</button>
+    </div>
+    <datalist id="@listId">
+        @foreach (var id in existing.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct())
+        {
+            <option value="@id"></option>
+        }
+    </datalist>
+    <cj-help for-key="@helpKey"></cj-help>
+    <p class="small cj-scope mb-0">
+        <strong>Auto-generated</strong> on the server (you create this — Clear Junction does not).
+        @if (optional) { <span>Optional: clear the field to omit.</span> }
+        Use <em>Regenerate</em> to mint a fresh id, or pick a previously used one from the dropdown.
+    </p>
+</div>

@@ -10,6 +10,7 @@ builder.Services.Configure<ClearJunctionOptions>(
 
 builder.Services.AddSingleton<IClearJunctionSignatureService, ClearJunctionSignatureService>();
 builder.Services.AddSingleton<ITransferStore, InMemoryTransferStore>();
+builder.Services.AddSingleton<IClientCustomerIdGenerator, ClientCustomerIdGenerator>();
 
 builder.Services.AddHttpClient<IClearJunctionClient, ClearJunctionClient>();
 

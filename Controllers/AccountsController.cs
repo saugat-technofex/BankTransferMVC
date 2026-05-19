@@ -7,16 +7,27 @@ namespace BankTransferMVC.Controllers;
 public class AccountsController : Controller
 {
     private readonly ITransferStore _store;
+    private readonly IClientCustomerIdGenerator _idGen;
 
-    public AccountsController(ITransferStore store) => _store = store;
+    public AccountsController(ITransferStore store, IClientCustomerIdGenerator idGen)
+    {
+        _store = store;
+        _idGen = idGen;
+    }
 
     public IActionResult Index() => View(_store.ListWallets());
 
-    public IActionResult Create() => View(new CreateWalletViewModel());
+    public IActionResult Create(bool regenerate = false) =>
+        View(new CreateWalletViewModel { ClientCustomerId = _idGen.Next() });
 
     [HttpPost, ValidateAntiForgeryToken]
     public IActionResult Create(CreateWalletViewModel form)
     {
+        if (string.IsNullOrWhiteSpace(form.ClientCustomerId))
+        {
+            form.ClientCustomerId = _idGen.Next();
+            ModelState.Remove(nameof(form.ClientCustomerId));
+        }
         if (!ModelState.IsValid) return View(form);
 
         var wallet = new WalletRecord

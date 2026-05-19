@@ -12,25 +12,43 @@ public class VirtualIbanController : Controller
     private readonly IClearJunctionClient _cj;
     private readonly ITransferStore _store;
     private readonly ClearJunctionOptions _options;
+    private readonly IClientCustomerIdGenerator _idGen;
 
     public VirtualIbanController(
         IClearJunctionClient cj,
         ITransferStore store,
-        IOptions<ClearJunctionOptions> options)
+        IOptions<ClearJunctionOptions> options,
+        IClientCustomerIdGenerator idGen)
     {
         _cj = cj;
         _store = store;
         _options = options.Value;
+        _idGen = idGen;
     }
 
     public IActionResult Index() => View(_store.ListIbans());
 
-    public IActionResult Create() => View(new CreateIbanViewModel());
+    public IActionResult Create(bool regenerate = false)
+    {
+        ViewBag.ExistingCustomerIds = _store.ListWallets()
+            .Select(w => w.ClientCustomerId).Distinct().ToList();
+        return View(new CreateIbanViewModel { ClientCustomerId = _idGen.Next() });
+    }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateIbanViewModel form)
     {
-        if (!ModelState.IsValid) return View(form);
+        if (string.IsNullOrWhiteSpace(form.ClientCustomerId))
+        {
+            form.ClientCustomerId = _idGen.Next();
+            ModelState.Remove(nameof(form.ClientCustomerId));
+        }
+        if (!ModelState.IsValid)
+        {
+            ViewBag.ExistingCustomerIds = _store.ListWallets()
+                .Select(w => w.ClientCustomerId).Distinct().ToList();
+            return View(form);
+        }
 
         var parts = (form.CustomerName ?? "").Split(' ', 2);
         var first = parts.Length > 0 ? parts[0] : "First";

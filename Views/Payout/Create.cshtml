@@ -69,8 +69,14 @@
                 </div>
                 <div class="col-md-4">
                     <label asp-for="PayerClientCustomerId" class="form-label"></label>
-                    <input asp-for="PayerClientCustomerId" class="form-control" placeholder="optional" />
-                    <cj-help for-key="payout.payerClientCustomerId"></cj-help>
+                    <partial name="_AutoCustomerId" view-data='new ViewDataDictionary(ViewData) {
+                        ["AspFor"] = "PayerClientCustomerId",
+                        ["CurrentValue"] = Model.PayerClientCustomerId,
+                        ["HelpKey"] = "payout.payerClientCustomerId",
+                        ["RegenerateUrl"] = Url.Action("Create", new { regenerate = true }),
+                        ["ExistingIds"] = (IEnumerable<string>?)ViewBag.ExistingCustomerIds ?? Enumerable.Empty<string>(),
+                        ["Optional"] = "true"
+                    }' />
                 </div>
                 <div class="col-md-4">
                     <label asp-for="PayerIban" class="form-label"></label>

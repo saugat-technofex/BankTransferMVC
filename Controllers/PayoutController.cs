@@ -12,25 +12,45 @@ public class PayoutController : Controller
     private readonly IClearJunctionClient _cj;
     private readonly ITransferStore _store;
     private readonly ClearJunctionOptions _options;
+    private readonly IClientCustomerIdGenerator _idGen;
 
     public PayoutController(
         IClearJunctionClient cj,
         ITransferStore store,
-        IOptions<ClearJunctionOptions> options)
+        IOptions<ClearJunctionOptions> options,
+        IClientCustomerIdGenerator idGen)
     {
         _cj = cj;
         _store = store;
         _options = options.Value;
+        _idGen = idGen;
     }
 
     public IActionResult Index() => View(_store.ListPayouts());
 
-    public IActionResult Create() => View(new CreatePayoutViewModel());
+    public IActionResult Create(bool regenerate = false)
+    {
+        var existing = _store.ListWallets().FirstOrDefault();
+        var payerId = existing?.ClientCustomerId ?? _idGen.Next();
+        ViewBag.ExistingCustomerIds = _store.ListWallets()
+            .Select(w => w.ClientCustomerId).Distinct().ToList();
+        return View(new CreatePayoutViewModel { PayerClientCustomerId = payerId });
+    }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreatePayoutViewModel form)
     {
-        if (!ModelState.IsValid) return View(form);
+        if (string.IsNullOrWhiteSpace(form.PayerClientCustomerId))
+        {
+            form.PayerClientCustomerId = _idGen.Next();
+            ModelState.Remove(nameof(form.PayerClientCustomerId));
+        }
+        if (!ModelState.IsValid)
+        {
+            ViewBag.ExistingCustomerIds = _store.ListWallets()
+                .Select(w => w.ClientCustomerId).Distinct().ToList();
+            return View(form);
+        }
 
         var clientOrder = $"PAY-{DateTime.UtcNow:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
 

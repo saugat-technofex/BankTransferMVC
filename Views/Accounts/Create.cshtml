@@ -19,8 +19,13 @@
                 </div>
                 <div class="col-md-6">
                     <label asp-for="ClientCustomerId" class="form-label"></label>
-                    <input asp-for="ClientCustomerId" class="form-control" placeholder="CUST-00099" />
-                    <cj-help for-key="shared.clientCustomerId"></cj-help>
+                    <partial name="_AutoCustomerId" view-data='new ViewDataDictionary(ViewData) {
+                        ["AspFor"] = "ClientCustomerId",
+                        ["CurrentValue"] = Model.ClientCustomerId,
+                        ["HelpKey"] = "shared.clientCustomerId",
+                        ["RegenerateUrl"] = Url.Action("Create", new { regenerate = true })
+                    }' />
+                    <span asp-validation-for="ClientCustomerId" class="text-danger small"></span>
                 </div>
                 <div class="col-md-6">
                     <label asp-for="Email" class="form-label"></label>
