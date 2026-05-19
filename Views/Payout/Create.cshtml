@@ -13,24 +13,12 @@
             <div class="row g-3">
                 <div class="col-md-4">
                     <label asp-for="Rail" class="form-label"></label>
-                    <select asp-for="Rail" class="form-select" id="railSelect">
-                        <option value="sepa">SEPA Credit Transfer (EUR)</option>
-                        <option value="sepaInst">SEPA Instant (EUR)</option>
-                        <option value="fps">UK Faster Payments (GBP)</option>
-                        <option value="chaps">UK CHAPS (GBP)</option>
-                        <option value="chapsCrossScheme">CHAPS Cross-scheme</option>
-                        <option value="swift">Multi-currency SWIFT</option>
-                        <option value="internal">Internal (CJ)</option>
-                    </select>
+                    <cj-lookup asp-for="Rail" kind="rail" id="railSelect"></cj-lookup>
                     <cj-help for-key="payout.rail"></cj-help>
                 </div>
                 <div class="col-md-3">
                     <label asp-for="Currency" class="form-label"></label>
-                    <select asp-for="Currency" class="form-select" id="currencySelect">
-                        <option>EUR</option><option>GBP</option><option>USD</option>
-                        <option>CHF</option><option>PLN</option><option>CAD</option>
-                        <option>SEK</option><option>NOK</option><option>DKK</option>
-                    </select>
+                    <cj-lookup asp-for="Currency" kind="currency" id="currencySelect"></cj-lookup>
                     <cj-help for-key="payout.currency"></cj-help>
                 </div>
                 <div class="col-md-3">
@@ -39,20 +27,20 @@
                     <cj-help for-key="payout.amount"></cj-help>
                     <span asp-validation-for="Amount" class="text-danger small"></span>
                 </div>
-                <div class="col-md-2">
-                    <label asp-for="PurposeCode" class="form-label">Purpose</label>
-                    <input asp-for="PurposeCode" class="form-control" />
+                <div class="col-md-3">
+                    <label asp-for="PurposeCode" class="form-label">Purpose code</label>
+                    <cj-lookup asp-for="PurposeCode" kind="purposeCode" placeholder="Search purpose code..."></cj-lookup>
                     <cj-help for-key="payout.purposeCode"></cj-help>
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-3">
+                    <label asp-for="PurposeCategory" class="form-label"></label>
+                    <cj-lookup asp-for="PurposeCategory" kind="purposeCategory" placeholder="Search category..."></cj-lookup>
+                    <cj-help for-key="payout.purposeCategory"></cj-help>
+                </div>
+                <div class="col-md-12">
                     <label asp-for="Description" class="form-label"></label>
                     <input asp-for="Description" class="form-control" placeholder="Invoice INV-1001" />
                     <cj-help for-key="payout.description"></cj-help>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="PurposeCategory" class="form-label"></label>
-                    <input asp-for="PurposeCategory" class="form-control" />
-                    <cj-help for-key="payout.purposeCategory"></cj-help>
                 </div>
             </div>
         </div>
@@ -102,9 +90,9 @@
                     <input asp-for="PayeeEmail" class="form-control" />
                     <cj-help for-key="payout.payeeEmail"></cj-help>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label asp-for="PayeeCountry" class="form-label"></label>
-                    <input asp-for="PayeeCountry" class="form-control" />
+                    <cj-lookup asp-for="PayeeCountry" kind="country" remote="true" placeholder="Search country..."></cj-lookup>
                     <cj-help for-key="payout.payeeCountry"></cj-help>
                 </div>
 
@@ -137,7 +125,7 @@
                 </div>
                 <div class="col-md-4 rail-field" data-rails="swift">
                     <label asp-for="ClearingSystemIdCode" class="form-label">Clearing system code</label>
-                    <input asp-for="ClearingSystemIdCode" class="form-control" placeholder="ABA / SWIFT / CHIPS" />
+                    <cj-lookup asp-for="ClearingSystemIdCode" kind="clearingSystem" optional="true" placeholder="Select clearing system..."></cj-lookup>
                     <cj-help for-key="payout.clearingSystemIdCode"></cj-help>
                 </div>
                 <div class="col-md-4 rail-field" data-rails="swift">
@@ -171,17 +159,22 @@
         (function () {
             var sel = document.getElementById('railSelect');
             var cur = document.getElementById('currencySelect');
+            function setCurrency(code) {
+                if (cur.tomselect) cur.tomselect.setValue(code);
+                else cur.value = code;
+            }
             function applyRail() {
                 var rail = sel.value;
                 document.querySelectorAll('.rail-field').forEach(function (el) {
                     var rails = (el.getAttribute('data-rails') || '').split(',');
                     el.style.display = rails.indexOf(rail) >= 0 ? '' : 'none';
                 });
-                if (rail === 'fps' || rail === 'chaps' || rail === 'chapsCrossScheme') cur.value = 'GBP';
-                else if (rail === 'sepa' || rail === 'sepaInst') cur.value = 'EUR';
+                if (rail === 'fps' || rail === 'chaps' || rail === 'chapsCrossScheme') setCurrency('GBP');
+                else if (rail === 'sepa' || rail === 'sepaInst') setCurrency('EUR');
             }
             sel.addEventListener('change', applyRail);
-            applyRail();
+            // Defer first apply until Tom Select is initialised so setValue works.
+            setTimeout(applyRail, 50);
         })();
     </script>
 }

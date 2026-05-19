@@ -207,6 +207,21 @@ body {
 .timeline-title { font-weight: 600; font-size: 13px; margin: 2px 0; }
 .timeline-body { font-size: 12px; color: var(--cj-muted); }
 
+/* Tom Select theming to match CJ surface */
+.ts-wrapper.form-select { padding: 0; }
+.ts-wrapper.single .ts-control { border-radius: 6px; border-color: var(--cj-border); min-height: 36px; font-size: 13px; padding: 4px 28px 4px 10px; }
+.ts-wrapper.single.focus .ts-control { border-color: var(--cj-primary); box-shadow: 0 0 0 3px rgba(10, 92, 255, .15); }
+.ts-dropdown { border-radius: 8px; border: 1px solid var(--cj-border); box-shadow: 0 6px 18px rgba(20, 30, 60, .12); font-size: 13px; }
+.ts-dropdown .optgroup-header { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--cj-muted); padding: 6px 12px; background: #f7f9fd; }
+.ts-dropdown .active { background: rgba(10, 92, 255, .12); color: var(--cj-primary-dark); }
+.ts-dropdown .cj-opt-code, .ts-control .cj-opt-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px; color: var(--cj-muted); margin-left: 6px;
+    background: #eef2ff; padding: 1px 6px; border-radius: 4px;
+}
+.ts-dropdown .cj-opt-label { font-weight: 500; }
+.plugin-clear_button .clear-button { right: 32px; }
+
 /* Auto-generated id input */
 .cj-auto-id .auto-badge {
     font-size: 10px; letter-spacing: .08em; font-weight: 700;

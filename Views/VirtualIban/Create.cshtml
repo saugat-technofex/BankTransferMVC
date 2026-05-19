@@ -44,7 +44,7 @@
                 </div>
                 <div class="col-md-3">
                     <label asp-for="Country" class="form-label"></label>
-                    <input asp-for="Country" class="form-control" placeholder="GB" maxlength="2" />
+                    <cj-lookup asp-for="Country" kind="country" remote="true" placeholder="Search country..."></cj-lookup>
                     <cj-help for-key="iban.country"></cj-help>
                 </div>
             </div>
@@ -78,17 +78,14 @@
         <div class="card-header">IBAN options <span class="cj-section-hint">walletUuid auto-generated on submit</span></div>
         <div class="card-body">
             <div class="row g-3">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label asp-for="IbanCountry" class="form-label"></label>
-                    <select asp-for="IbanCountry" class="form-select">
-                        <option>GB</option><option>DE</option><option>FR</option>
-                        <option>ES</option><option>IT</option><option>NL</option>
-                    </select>
+                    <cj-lookup asp-for="IbanCountry" kind="country" remote="true" placeholder="Search IBAN country..."></cj-lookup>
                     <cj-help for-key="iban.ibanCountry"></cj-help>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label asp-for="IbansGroup" class="form-label"></label>
-                    <input asp-for="IbansGroup" class="form-control" />
+                    <cj-lookup asp-for="IbansGroup" kind="ibansGroup" placeholder="Select IBAN pool..."></cj-lookup>
                     <cj-help for-key="iban.ibansGroup"></cj-help>
                 </div>
             </div>

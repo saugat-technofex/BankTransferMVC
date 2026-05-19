@@ -17,10 +17,7 @@
             <div class="row g-3">
                 <div class="col-md-3">
                     <label asp-for="Direction" class="form-label"></label>
-                    <select asp-for="Direction" class="form-select">
-                        <option value="outgoing">Outgoing (refund a payout we sent)</option>
-                        <option value="incoming">Incoming (return a pay-in we received)</option>
-                    </select>
+                    <cj-lookup asp-for="Direction" kind="refundDirection"></cj-lookup>
                     <cj-help for-key="refund.direction"></cj-help>
                 </div>
                 <div class="col-md-6">
@@ -34,9 +31,7 @@
                 </div>
                 <div class="col-md-2">
                     <label asp-for="Currency" class="form-label"></label>
-                    <select asp-for="Currency" class="form-select">
-                        <option>EUR</option><option>GBP</option><option>USD</option>
-                    </select>
+                    <cj-lookup asp-for="Currency" kind="currency"></cj-lookup>
                 </div>
                 <div class="col-md-2">
                     <label asp-for="Amount" class="form-label"></label>

@@ -21,13 +21,14 @@
                 </div>
                 <div class="col-md-3">
                     <label asp-for="Type" class="form-label"></label>
-                    <select asp-for="Type" class="form-select">
+                    <select asp-for="Type" class="form-select cj-lookup" data-cj-lookup="local">
                         <option value="all">All</option>
                         <option value="payin">Pay-in</option>
-                        <option value="payout">Payout</option>
+                        <option value="payout">Pay-out</option>
                         <option value="refund">Refund</option>
                         <option value="walletTransfer">Wallet transfer</option>
                         <option value="invoice">Card invoice</option>
+                        <option value="instantFxTransfer">Instant FX</option>
                     </select>
                 </div>
                 <div class="col-md-3">

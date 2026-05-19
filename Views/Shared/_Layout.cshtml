@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Clear Junction Console</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/tom-select/tom-select.bootstrap5.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BankTransferMVC.styles.css" asp-append-version="true" />
 </head>
@@ -79,12 +80,13 @@
                     <a class="nav-link sub" asp-controller="Compliance" asp-action="Approvals">Maker-checker approvals</a>
                 </div>
 
-                <button class="nav-group-toggle @Coll(On("Reports"))" data-bs-toggle="collapse" data-bs-target="#grp-reports">
+                <button class="nav-group-toggle @Coll(On("Reports") || On("Reference"))" data-bs-toggle="collapse" data-bs-target="#grp-reports">
                     <span class="nav-ico">&#9783;</span> Reports &amp; events <span class="caret">&rsaquo;</span>
                 </button>
-                <div id="grp-reports" class="collapse @Show(On("Reports"))">
+                <div id="grp-reports" class="collapse @Show(On("Reports") || On("Reference"))">
                     <a class="nav-link sub" asp-controller="Reports" asp-action="Index">Transaction report</a>
                     <a class="nav-link sub" asp-controller="Reports" asp-action="Events">Webhook events</a>
+                    <a class="nav-link sub" asp-controller="Reference" asp-action="Index">Reference catalog</a>
                 </div>
             </nav>
 
@@ -123,6 +125,8 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/tom-select/tom-select.complete.min.js"></script>
+    <script src="~/js/cj-lookup.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

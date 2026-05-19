@@ -13,10 +13,7 @@
             <div class="row g-3">
                 <div class="col-md-3">
                     <label asp-for="Kind" class="form-label"></label>
-                    <select asp-for="Kind" class="form-select" id="kindSelect">
-                        <option value="cop">UK Confirmation of Payee</option>
-                        <option value="iban">SEPA IBAN reachability</option>
-                    </select>
+                    <cj-lookup asp-for="Kind" kind="checkKind" id="kindSelect"></cj-lookup>
                     <cj-help for-key="check.kind"></cj-help>
                 </div>
                 <div class="col-md-9 cop-only">

@@ -29,10 +29,7 @@
                 </div>
                 <div class="col-md-3">
                     <label asp-for="Currency" class="form-label"></label>
-                    <select asp-for="Currency" class="form-select">
-                        <option>EUR</option><option>GBP</option><option>USD</option>
-                        <option>CHF</option><option>PLN</option>
-                    </select>
+                    <cj-lookup asp-for="Currency" kind="currency" placeholder="Search currency..."></cj-lookup>
                     <cj-help for-key="payin.currency"></cj-help>
                 </div>
                 <div class="col-md-3">
@@ -47,23 +44,17 @@
                 </div>
                 <div class="col-md-2">
                     <label asp-for="Status" class="form-label"></label>
-                    <select asp-for="Status" class="form-select">
-                        <option>pending</option><option>completed</option>
-                    </select>
+                    <cj-lookup asp-for="Status" kind="status"></cj-lookup>
                     <cj-help for-key="payin.status"></cj-help>
                 </div>
                 <div class="col-md-2">
                     <label asp-for="OperStatus" class="form-label">Oper status</label>
-                    <select asp-for="OperStatus" class="form-select">
-                        <option>captured</option><option>pending</option><option>settled</option>
-                    </select>
+                    <cj-lookup asp-for="OperStatus" kind="operStatus"></cj-lookup>
                     <cj-help for-key="payin.operStatus"></cj-help>
                 </div>
                 <div class="col-md-2">
                     <label asp-for="ComplianceStatus" class="form-label">Compliance</label>
-                    <select asp-for="ComplianceStatus" class="form-select">
-                        <option>pending</option><option>approved</option><option>declined</option>
-                    </select>
+                    <cj-lookup asp-for="ComplianceStatus" kind="complianceStatus"></cj-lookup>
                     <cj-help for-key="payin.complianceStatus"></cj-help>
                 </div>
             </div>

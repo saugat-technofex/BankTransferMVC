@@ -1,0 +1,89 @@
+@using BankTransferMVC.Services
+@model IReadOnlyList<CjLookupItem>
+@{
+    ViewData["Title"] = "Reference data";
+    var selectedKind = (string)ViewBag.SelectedKind;
+    var query = (string?)ViewBag.Query;
+    var kinds = (IReadOnlyDictionary<string, string>)ViewBag.Kinds;
+    var description = (string)ViewBag.Description;
+}
+
+<div class="cj-feature-intro">
+    <h2>Reference data catalog</h2>
+    <p class="lead">Single source of truth for every Clear Junction enum/list used in this PoC. The data comes from
+        <code>Services/CjReferenceData.cs</code> and is exposed via <code>/api/lookups/{kind}</code> for client-side search.</p>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card cj-card">
+            <div class="card-header">Lookup kinds</div>
+            <div class="list-group list-group-flush">
+                @foreach (var k in kinds)
+                {
+                    var active = string.Equals(k.Key, selectedKind, StringComparison.OrdinalIgnoreCase) ? " active" : "";
+                    <a class="list-group-item list-group-item-action@(active)"
+                       href="@Url.Action("Index", new { kind = k.Key })">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>@k.Key</strong>
+                        </div>
+                        <small class="text-muted">@k.Value</small>
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="card cj-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>@selectedKind <small class="text-muted">— @description</small></span>
+                <span class="badge bg-secondary">@Model.Count items</span>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-2 mb-3">
+                    <input type="hidden" name="kind" value="@selectedKind" />
+                    <div class="col-md-8">
+                        <input type="search" name="q" value="@query" class="form-control" placeholder="Filter by code, label, or group..." />
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100">Search</button>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="@Url.Action("Index", new { kind = selectedKind })" class="btn btn-outline-secondary w-100">Reset</a>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-sm cj-table align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:160px">Code</th>
+                                <th>Label</th>
+                                <th style="width:160px">Group</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Any())
+                            {
+                                <tr><td colspan="3" class="text-muted">No matches.</td></tr>
+                            }
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td><code>@item.Code</code></td>
+                                    <td>@item.Label</td>
+                                    <td>@(item.Group ?? "")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted small mb-0">
+                    Tip: every form in this app uses <code>&lt;cj-lookup kind="@selectedKind"&gt;</code> to render a searchable
+                    Tom Select dropdown backed by this same list. Big lists (country, purposeCode) fetch on-demand from
+                    <code>/api/lookups/@selectedKind?q=...</code>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

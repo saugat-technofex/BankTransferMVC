@@ -32,25 +32,19 @@
                     <input asp-for="Email" class="form-control" placeholder="ops@acme.com" />
                     <cj-help for-key="wallet.email"></cj-help>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label asp-for="Country" class="form-label"></label>
-                    <input asp-for="Country" class="form-control" maxlength="2" />
+                    <cj-lookup asp-for="Country" kind="country" remote="true" placeholder="Search country..."></cj-lookup>
                     <cj-help for-key="wallet.country"></cj-help>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label asp-for="Type" class="form-label"></label>
-                    <select asp-for="Type" class="form-select">
-                        <option>corporate</option><option>collection</option>
-                        <option>current</option><option>correspondent</option>
-                    </select>
+                    <cj-lookup asp-for="Type" kind="walletType" placeholder="Select wallet type..."></cj-lookup>
                     <cj-help for-key="wallet.type"></cj-help>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label asp-for="Currency" class="form-label"></label>
-                    <select asp-for="Currency" class="form-select">
-                        <option>EUR</option><option>GBP</option><option>USD</option>
-                        <option>CHF</option><option>PLN</option><option>CAD</option>
-                    </select>
+                    <cj-lookup asp-for="Currency" kind="currency" placeholder="Search currency..."></cj-lookup>
                     <cj-help for-key="wallet.currency"></cj-help>
                 </div>
                 <div class="col-md-3">

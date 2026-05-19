@@ -15,18 +15,12 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label asp-for="SellCurrency" class="form-label">Sell</label>
-                            <select asp-for="SellCurrency" class="form-select">
-                                <option>EUR</option><option>GBP</option><option>USD</option>
-                                <option>CHF</option><option>PLN</option>
-                            </select>
+                            <cj-lookup asp-for="SellCurrency" kind="currency" placeholder="Search sell currency..."></cj-lookup>
                             <cj-help for-key="fx.sellCurrency"></cj-help>
                         </div>
                         <div class="col-md-4">
                             <label asp-for="BuyCurrency" class="form-label">Buy</label>
-                            <select asp-for="BuyCurrency" class="form-select">
-                                <option>USD</option><option>EUR</option><option>GBP</option>
-                                <option>CHF</option><option>PLN</option>
-                            </select>
+                            <cj-lookup asp-for="BuyCurrency" kind="currency" placeholder="Search buy currency..."></cj-lookup>
                             <cj-help for-key="fx.buyCurrency"></cj-help>
                         </div>
                         <div class="col-md-4">

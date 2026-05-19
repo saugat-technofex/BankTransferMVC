@@ -33,9 +33,7 @@
                 </div>
                 <div class="col-md-3">
                     <label asp-for="Currency" class="form-label"></label>
-                    <select asp-for="Currency" class="form-select">
-                        <option>EUR</option><option>GBP</option><option>USD</option>
-                    </select>
+                    <cj-lookup asp-for="Currency" kind="currency" placeholder="Search currency..."></cj-lookup>
                 </div>
                 <div class="col-md-3">
                     <label asp-for="Amount" class="form-label"></label>
