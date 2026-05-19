@@ -1,0 +1,52 @@
+@model IReadOnlyList<BankTransferMVC.Models.WebhookEvent>
+@{
+    ViewData["Title"] = "Pay-in events";
+}
+
+<cj-feature feature-key="payin"></cj-feature>
+
+<div class="card">
+    <div class="card-header">
+        Pay-in notifications (@Model.Count)
+        <a class="btn btn-sm btn-primary" asp-action="Simulate">Simulate pay-in</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-3 text-muted">
+                No pay-ins yet. Use the simulator (Clear Junction sandbox sends real
+                notifications to <code>/webhooks/cj/payin</code> when running live).
+            </div>
+        }
+        else
+        {
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Received</th>
+                        <th title="@CjDescriptions.Get("shared.clientOrder").Description">Client order</th>
+                        <th title="@CjDescriptions.Get("shared.orderReference").Description">Order reference</th>
+                        <th title="@CjDescriptions.Get("shared.amount").Description">Amount</th>
+                        <th title="@CjDescriptions.Get("payin.status").Description">Status</th>
+                        <th title="@CjDescriptions.Get("shared.operStatus").Description">Operational</th>
+                        <th title="@CjDescriptions.Get("shared.complianceStatus").Description">Compliance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model)
+                    {
+                        <tr>
+                            <td>@e.ReceivedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td><code>@e.ClientOrder</code></td>
+                            <td><code>@e.OrderReference</code></td>
+                            <td>@e.Amount.ToString("N2") @e.Currency</td>
+                            <td><span class="badge-status s-@e.Status">@e.Status</span></td>
+                            <td><span class="badge-status s-@e.OperStatus">@e.OperStatus</span></td>
+                            <td><span class="badge-status s-@e.ComplianceStatus">@e.ComplianceStatus</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

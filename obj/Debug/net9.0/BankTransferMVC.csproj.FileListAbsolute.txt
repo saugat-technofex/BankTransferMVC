@@ -21,7 +21,6 @@ D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\rjsmcshtml.dswa.cache.json
 D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\scopedcss\bundle\BankTransferMVC.styles.css
 D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\scopedcss\projectbundle\BankTransferMVC.bundle.scp.css
-D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\compressed\fkci6ctx3r-b9sayid5wm.gz
 D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\compressed\3wpdx30us5-61n19gt1b8.gz
 D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\compressed\llj3glxc0t-xtxxf3hu2r.gz
 D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\compressed\nas8saougq-bqjiyaj88i.gz
@@ -94,3 +93,4 @@ D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\refint\BankTransferMVC.dll
 D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\BankTransferMVC.pdb
 D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\BankTransferMVC.genruntimeconfig.cache
 D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\ref\BankTransferMVC.dll
+D:\BankTransferPoc\BankTransferMVC\obj\Debug\net9.0\compressed\fkci6ctx3r-tuo259mdiw.gz

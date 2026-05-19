@@ -1,0 +1,57 @@
+@model BankTransferMVC.Models.WalletTransferViewModel
+@{
+    ViewData["Title"] = "Wallet transfer";
+    var wallets = (IReadOnlyList<BankTransferMVC.Models.WalletRecord>?)ViewBag.Wallets
+        ?? new List<BankTransferMVC.Models.WalletRecord>();
+}
+
+<cj-feature feature-key="walletTransfer"></cj-feature>
+
+<form asp-action="Transfer" method="post">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-header">Internal transfer <span class="cj-section-hint">POST /v7/gate/wallets/transfer</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label asp-for="FromWalletUuid" class="form-label"></label>
+                    <select asp-for="FromWalletUuid" class="form-select">
+                        @foreach (var w in wallets)
+                        {
+                            <option value="@w.WalletUuid">@w.Name (@w.Currency @w.Balance.ToString("N2"))</option>
+                        }
+                    </select>
+                    <cj-help for-key="walletTransfer.from"></cj-help>
+                </div>
+                <div class="col-md-5">
+                    <label asp-for="ToWalletUuid" class="form-label"></label>
+                    <select asp-for="ToWalletUuid" class="form-select">
+                        @foreach (var w in wallets)
+                        {
+                            <option value="@w.WalletUuid">@w.Name (@w.Currency @w.Balance.ToString("N2"))</option>
+                        }
+                    </select>
+                    <cj-help for-key="walletTransfer.to"></cj-help>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="Currency" class="form-label"></label>
+                    <select asp-for="Currency" class="form-select">
+                        <option>EUR</option><option>GBP</option><option>USD</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Amount" class="form-label"></label>
+                    <input asp-for="Amount" class="form-control" />
+                </div>
+                <div class="col-md-9">
+                    <label asp-for="Reference" class="form-label"></label>
+                    <input asp-for="Reference" class="form-control" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary" disabled="@(!wallets.Any())">Transfer</button>
+    <a class="btn btn-link" asp-action="Index">Cancel</a>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

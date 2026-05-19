@@ -1,0 +1,12 @@
+@model string
+@{
+    var help = CjDescriptions.Get(Model ?? "");
+}
+@if (!string.IsNullOrWhiteSpace(help.Description))
+{
+    <span class="cj-field-note">@help.Description</span>
+    @if (!string.IsNullOrWhiteSpace(help.Scope))
+    {
+        <span class="cj-field-note"><em>Scope: @help.Scope</em></span>
+    }
+}

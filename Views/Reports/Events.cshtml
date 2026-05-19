@@ -1,0 +1,40 @@
+@model IReadOnlyList<BankTransferMVC.Models.WebhookEvent>
+@{
+    ViewData["Title"] = "Webhook events";
+}
+
+<cj-feature feature-key="events"></cj-feature>
+
+<div class="card">
+    <div class="card-header">
+        All inbound webhook events (@Model.Count)
+        <a class="btn btn-sm btn-link" asp-action="Index">Run report</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-3 text-muted">No webhook events recorded yet.</div>
+        }
+        else
+        {
+            <table class="table mb-0">
+                <thead>
+                    <tr><th>Received</th><th>Type</th><th>Client order</th><th>Amount</th><th>Status</th><th>Detail</th></tr>
+                </thead>
+                <tbody>
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td>@e.ReceivedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td><span class="rail-chip">@e.Type</span></td>
+                        <td><code>@e.ClientOrder</code></td>
+                        <td>@e.Amount.ToString("N2") @e.Currency</td>
+                        <td><span class="badge-status s-@e.Status">@e.Status</span></td>
+                        <td class="small text-muted">@e.Payload</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

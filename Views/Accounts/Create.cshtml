@@ -1,0 +1,63 @@
+@model BankTransferMVC.Models.CreateWalletViewModel
+@{
+    ViewData["Title"] = "Create wallet";
+}
+
+<cj-feature feature-key="accountsCreate"></cj-feature>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-header">Corporate customer <span class="cj-section-hint">POST /v7/gate/wallets/corporate</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" placeholder="Acme Ltd" />
+                    <cj-help for-key="wallet.name"></cj-help>
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ClientCustomerId" class="form-label"></label>
+                    <input asp-for="ClientCustomerId" class="form-control" placeholder="CUST-00099" />
+                    <cj-help for-key="shared.clientCustomerId"></cj-help>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" placeholder="ops@acme.com" />
+                    <cj-help for-key="wallet.email"></cj-help>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="Country" class="form-label"></label>
+                    <input asp-for="Country" class="form-control" maxlength="2" />
+                    <cj-help for-key="wallet.country"></cj-help>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="Type" class="form-label"></label>
+                    <select asp-for="Type" class="form-select">
+                        <option>corporate</option><option>collection</option>
+                        <option>current</option><option>correspondent</option>
+                    </select>
+                    <cj-help for-key="wallet.type"></cj-help>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="Currency" class="form-label"></label>
+                    <select asp-for="Currency" class="form-select">
+                        <option>EUR</option><option>GBP</option><option>USD</option>
+                        <option>CHF</option><option>PLN</option><option>CAD</option>
+                    </select>
+                    <cj-help for-key="wallet.currency"></cj-help>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="OpeningBalance" class="form-label"></label>
+                    <input asp-for="OpeningBalance" class="form-control" />
+                    <cj-help for-key="wallet.openingBalance"></cj-help>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Create wallet</button>
+    <a class="btn btn-link" asp-action="Index">Cancel</a>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

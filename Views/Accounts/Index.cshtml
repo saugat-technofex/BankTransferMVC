@@ -1,0 +1,59 @@
+@model IReadOnlyList<BankTransferMVC.Models.WalletRecord>
+@{
+    ViewData["Title"] = "Accounts & wallets";
+}
+
+<cj-feature feature-key="accounts"></cj-feature>
+
+<div class="card">
+    <div class="card-header">
+        Wallets (@Model.Count)
+        <div>
+            <a class="btn btn-sm btn-outline-primary" asp-action="Transfer">Internal transfer</a>
+            <a class="btn btn-sm btn-primary" asp-action="Create">New wallet</a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-3 text-muted">No wallets yet. Create a corporate wallet via <code>POST /v7/gate/wallets/corporate</code>.</div>
+        }
+        else
+        {
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th title="@CjDescriptions.Get("shared.walletUuid").Description">Wallet UUID</th>
+                        <th>Name</th>
+                        <th title="@CjDescriptions.Get("shared.clientCustomerId").Description">Customer Id</th>
+                        <th>Type</th>
+                        <th>Currency</th>
+                        <th>Balance</th>
+                        <th>Country</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var w in Model)
+                {
+                    <tr>
+                        <td><code>@w.WalletUuid.Substring(0, 8)…</code></td>
+                        <td>@w.Name</td>
+                        <td><code>@w.ClientCustomerId</code></td>
+                        <td><span class="rail-chip">@w.Type</span></td>
+                        <td>@w.Currency</td>
+                        <td>@w.Balance.ToString("N2")</td>
+                        <td>@w.Country</td>
+                        <td><span class="badge-status s-@w.Status">@w.Status</span></td>
+                        <td>
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-walletUuid="@w.WalletUuid">View</a>
+                            <a class="btn btn-sm btn-link" asp-action="Statement" asp-route-walletUuid="@w.WalletUuid">Statement</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

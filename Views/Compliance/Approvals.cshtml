@@ -1,0 +1,57 @@
+@model IReadOnlyList<BankTransferMVC.Models.PayoutRecord>
+@{
+    ViewData["Title"] = "Approvals (maker-checker)";
+}
+
+<cj-feature feature-key="approvals"></cj-feature>
+
+<div class="card">
+    <div class="card-header">Pending payouts (@Model.Count)</div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-3 text-muted">No payouts awaiting approval. Approve/cancel uses <code>POST /v7/gate/transactionAction/{approve|cancel}</code>.</div>
+        }
+        else
+        {
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Client order</th>
+                        <th>Rail</th>
+                        <th>Amount</th>
+                        <th>Payee</th>
+                        <th>Operational</th>
+                        <th>Compliance</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td><a asp-controller="Payout" asp-action="Details" asp-route-clientOrder="@p.ClientOrder"><code>@p.ClientOrder</code></a></td>
+                        <td><span class="rail-chip">@p.Rail.ToUpperInvariant()</span></td>
+                        <td>@p.Amount.ToString("N2") @p.Currency</td>
+                        <td>@p.PayeeName</td>
+                        <td><span class="badge-status s-@p.OperStatus">@p.OperStatus</span></td>
+                        <td><span class="badge-status s-@p.ComplianceStatus">@p.ComplianceStatus</span></td>
+                        <td class="d-flex gap-1">
+                            <form asp-action="Approve" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="clientOrder" value="@p.ClientOrder" />
+                                <button class="btn btn-sm btn-success">Approve</button>
+                            </form>
+                            <form asp-action="Cancel" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="clientOrder" value="@p.ClientOrder" />
+                                <button class="btn btn-sm btn-outline-danger">Cancel</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

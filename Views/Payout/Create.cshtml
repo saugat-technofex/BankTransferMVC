@@ -1,0 +1,182 @@
+@model BankTransferMVC.Models.CreatePayoutViewModel
+@{
+    ViewData["Title"] = "New payout";
+}
+
+<cj-feature feature-key="payoutCreate"></cj-feature>
+
+<form asp-action="Create" method="post" id="payoutForm">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-header">Payment <span class="cj-section-hint">clientOrder generated on submit</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="Rail" class="form-label"></label>
+                    <select asp-for="Rail" class="form-select" id="railSelect">
+                        <option value="sepa">SEPA Credit Transfer (EUR)</option>
+                        <option value="sepaInst">SEPA Instant (EUR)</option>
+                        <option value="fps">UK Faster Payments (GBP)</option>
+                        <option value="chaps">UK CHAPS (GBP)</option>
+                        <option value="chapsCrossScheme">CHAPS Cross-scheme</option>
+                        <option value="swift">Multi-currency SWIFT</option>
+                        <option value="internal">Internal (CJ)</option>
+                    </select>
+                    <cj-help for-key="payout.rail"></cj-help>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Currency" class="form-label"></label>
+                    <select asp-for="Currency" class="form-select" id="currencySelect">
+                        <option>EUR</option><option>GBP</option><option>USD</option>
+                        <option>CHF</option><option>PLN</option><option>CAD</option>
+                        <option>SEK</option><option>NOK</option><option>DKK</option>
+                    </select>
+                    <cj-help for-key="payout.currency"></cj-help>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Amount" class="form-label"></label>
+                    <input asp-for="Amount" class="form-control" />
+                    <cj-help for-key="payout.amount"></cj-help>
+                    <span asp-validation-for="Amount" class="text-danger small"></span>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="PurposeCode" class="form-label">Purpose</label>
+                    <input asp-for="PurposeCode" class="form-control" />
+                    <cj-help for-key="payout.purposeCode"></cj-help>
+                </div>
+                <div class="col-md-8">
+                    <label asp-for="Description" class="form-label"></label>
+                    <input asp-for="Description" class="form-control" placeholder="Invoice INV-1001" />
+                    <cj-help for-key="payout.description"></cj-help>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="PurposeCategory" class="form-label"></label>
+                    <input asp-for="PurposeCategory" class="form-control" />
+                    <cj-help for-key="payout.purposeCategory"></cj-help>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Payer (debit side)</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="PayerWalletUuid" class="form-label"></label>
+                    <input asp-for="PayerWalletUuid" class="form-control" placeholder="optional" />
+                    <cj-help for-key="payout.payerWalletUuid"></cj-help>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="PayerClientCustomerId" class="form-label"></label>
+                    <input asp-for="PayerClientCustomerId" class="form-control" placeholder="optional" />
+                    <cj-help for-key="payout.payerClientCustomerId"></cj-help>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="PayerIban" class="form-label"></label>
+                    <input asp-for="PayerIban" class="form-control" placeholder="GBXXCLJU…" />
+                    <cj-help for-key="payout.payerIban"></cj-help>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Beneficiary <span class="cj-section-hint">payee + payeeRequisite (rail-specific)</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="PayeeName" class="form-label"></label>
+                    <input asp-for="PayeeName" class="form-control" placeholder="Julie Peterson" />
+                    <cj-help for-key="payout.payeeName"></cj-help>
+                    <span asp-validation-for="PayeeName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="PayeeEmail" class="form-label"></label>
+                    <input asp-for="PayeeEmail" class="form-control" />
+                    <cj-help for-key="payout.payeeEmail"></cj-help>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="PayeeCountry" class="form-label"></label>
+                    <input asp-for="PayeeCountry" class="form-control" />
+                    <cj-help for-key="payout.payeeCountry"></cj-help>
+                </div>
+
+                <div class="col-md-8 rail-field" data-rails="sepa,sepaInst,swift,internal">
+                    <label asp-for="PayeeIban" class="form-label">Payee IBAN</label>
+                    <input asp-for="PayeeIban" class="form-control" placeholder="DE89370400440532013000" />
+                    <cj-help for-key="payout.payeeIban"></cj-help>
+                </div>
+
+                <div class="col-md-4 rail-field" data-rails="fps,chaps,chapsCrossScheme">
+                    <label asp-for="PayeeAccountNumber" class="form-label">Account number</label>
+                    <input asp-for="PayeeAccountNumber" class="form-control" placeholder="12345678" />
+                    <cj-help for-key="payout.payeeAccountNumber"></cj-help>
+                </div>
+                <div class="col-md-4 rail-field" data-rails="fps,chaps,chapsCrossScheme">
+                    <label asp-for="PayeeSortCode" class="form-label">Sort code</label>
+                    <input asp-for="PayeeSortCode" class="form-control" placeholder="000000" />
+                    <cj-help for-key="payout.payeeSortCode"></cj-help>
+                </div>
+
+                <div class="col-md-4 rail-field" data-rails="swift">
+                    <label asp-for="PayeeBankSwift" class="form-label">Beneficiary BIC</label>
+                    <input asp-for="PayeeBankSwift" class="form-control" placeholder="BOFAUS3N" />
+                    <cj-help for-key="payout.payeeBankSwift"></cj-help>
+                </div>
+                <div class="col-md-8 rail-field" data-rails="swift">
+                    <label asp-for="PayeeBankName" class="form-label">Beneficiary bank name</label>
+                    <input asp-for="PayeeBankName" class="form-control" placeholder="Bank of America" />
+                    <cj-help for-key="payout.payeeBankName"></cj-help>
+                </div>
+                <div class="col-md-4 rail-field" data-rails="swift">
+                    <label asp-for="ClearingSystemIdCode" class="form-label">Clearing system code</label>
+                    <input asp-for="ClearingSystemIdCode" class="form-control" placeholder="ABA / SWIFT / CHIPS" />
+                    <cj-help for-key="payout.clearingSystemIdCode"></cj-help>
+                </div>
+                <div class="col-md-4 rail-field" data-rails="swift">
+                    <label asp-for="ClearingMemberId" class="form-label">Clearing member id</label>
+                    <input asp-for="ClearingMemberId" class="form-control" placeholder="026009593" />
+                    <cj-help for-key="payout.clearingMemberId"></cj-help>
+                </div>
+                <div class="col-md-4 rail-field" data-rails="swift">
+                    <label asp-for="IntermediaryBankSwift" class="form-label">Intermediary BIC</label>
+                    <input asp-for="IntermediaryBankSwift" class="form-control" />
+                    <cj-help for-key="payout.intermediaryBankSwift"></cj-help>
+                </div>
+                <div class="col-md-8 rail-field" data-rails="swift">
+                    <label asp-for="IntermediaryBankName" class="form-label">Intermediary bank name</label>
+                    <input asp-for="IntermediaryBankName" class="form-control" />
+                    <cj-help for-key="payout.intermediaryBankName"></cj-help>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Submit payout</button>
+        <a class="btn btn-link" asp-action="Index">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var sel = document.getElementById('railSelect');
+            var cur = document.getElementById('currencySelect');
+            function applyRail() {
+                var rail = sel.value;
+                document.querySelectorAll('.rail-field').forEach(function (el) {
+                    var rails = (el.getAttribute('data-rails') || '').split(',');
+                    el.style.display = rails.indexOf(rail) >= 0 ? '' : 'none';
+                });
+                if (rail === 'fps' || rail === 'chaps' || rail === 'chapsCrossScheme') cur.value = 'GBP';
+                else if (rail === 'sepa' || rail === 'sepaInst') cur.value = 'EUR';
+            }
+            sel.addEventListener('change', applyRail);
+            applyRail();
+        })();
+    </script>
+}
+

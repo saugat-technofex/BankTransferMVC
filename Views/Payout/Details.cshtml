@@ -1,0 +1,113 @@
+@model BankTransferMVC.Models.PayoutRecord
+@{
+    ViewData["Title"] = "Payout details";
+    var events = (List<BankTransferMVC.Models.WebhookEvent>?)ViewBag.Events
+        ?? new List<BankTransferMVC.Models.WebhookEvent>();
+}
+
+<cj-feature feature-key="payoutDetails"></cj-feature>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <span>@Model.Amount.ToString("N2") @Model.Currency → @Model.PayeeName</span>
+                <span class="rail-chip">@Model.Rail.ToUpperInvariant()</span>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Client order</dt>
+                    <dd class="col-sm-8">
+                        <code>@Model.ClientOrder</code>
+                        <partial name="_CjDetailNote" model="@("shared.clientOrder")" />
+                    </dd>
+
+                    <dt class="col-sm-4">CJ order reference</dt>
+                    <dd class="col-sm-8">
+                        <code>@Model.OrderReference</code>
+                        <partial name="_CjDetailNote" model="@("shared.orderReference")" />
+                    </dd>
+
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8"><span class="badge-status s-@Model.Status">@Model.Status</span></dd>
+
+                    <dt class="col-sm-4">Operational</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge-status s-@Model.OperStatus">@Model.OperStatus</span>
+                        <partial name="_CjDetailNote" model="@("shared.operStatus")" />
+                    </dd>
+
+                    <dt class="col-sm-4">Compliance</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge-status s-@Model.ComplianceStatus">@Model.ComplianceStatus</span>
+                        <partial name="_CjDetailNote" model="@("shared.complianceStatus")" />
+                    </dd>
+
+                    <dt class="col-sm-4">Beneficiary account</dt>
+                    <dd class="col-sm-8">
+                        <code>@Model.PayeeAccount</code>
+                        <partial name="_CjDetailNote" model="@("payout.payeeIban")" />
+                    </dd>
+
+                    <dt class="col-sm-4">Beneficiary country</dt>
+                    <dd class="col-sm-8">
+                        @Model.PayeeCountry
+                        <partial name="_CjDetailNote" model="@("payout.payeeCountry")" />
+                    </dd>
+
+                    <dt class="col-sm-4">Description</dt>
+                    <dd class="col-sm-8">
+                        @Model.Description
+                        <partial name="_CjDetailNote" model="@("payout.description")" />
+                    </dd>
+
+                    <dt class="col-sm-4">Created</dt>
+                    <dd class="col-sm-8">@Model.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") UTC</dd>
+
+                    <dt class="col-sm-4">Last updated</dt>
+                    <dd class="col-sm-8">@Model.LastUpdatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") UTC</dd>
+                </dl>
+            </div>
+        </div>
+
+        <form asp-action="Refresh" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="clientOrder" value="@Model.ClientOrder" />
+            <button type="submit" class="btn btn-outline-primary">Refresh status</button>
+            <a class="btn btn-link" asp-action="Index">Back to list</a>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">Lifecycle</div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-time">@Model.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")</div>
+                        <div class="timeline-title">Submitted to Clear Junction</div>
+                        <div class="timeline-body">Status: created · operStatus: pending</div>
+                    </div>
+                    @foreach (var e in events)
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-time">@e.ReceivedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")</div>
+                            <div class="timeline-title">@e.Type</div>
+                            <div class="timeline-body">
+                                Status: @e.Status · operStatus: @e.OperStatus · compliance: @e.ComplianceStatus
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (!events.Any())
+                {
+                    <p class="text-muted small mb-0 mt-3 cj-desc">
+                        No webhook events yet. Clear Junction will POST a <code>payoutNotification</code>
+                        to <code>/webhooks/cj/payout</code> as the payment progresses. Respond with the
+                        <code>orderReference</code> as plain text (see field reference).
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

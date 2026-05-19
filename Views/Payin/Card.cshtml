@@ -1,0 +1,51 @@
+@model BankTransferMVC.Models.CardPayinViewModel
+@{
+    ViewData["Title"] = "Card pay-in";
+}
+
+<cj-feature feature-key="cardPayin"></cj-feature>
+
+<form asp-action="Card" method="post">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-header">Card invoice <span class="cj-section-hint">POST /v7/gate/invoice/creditCard</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="PayerName" class="form-label"></label>
+                    <input asp-for="PayerName" class="form-control" placeholder="John Doe" />
+                    <cj-help for-key="cardPayin.payerName"></cj-help>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PayerEmail" class="form-label"></label>
+                    <input asp-for="PayerEmail" class="form-control" placeholder="payer@example.com" />
+                    <cj-help for-key="cardPayin.payerEmail"></cj-help>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ProductName" class="form-label"></label>
+                    <input asp-for="ProductName" class="form-control" />
+                    <cj-help for-key="cardPayin.productName"></cj-help>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="SiteAddress" class="form-label"></label>
+                    <input asp-for="SiteAddress" class="form-control" />
+                    <cj-help for-key="cardPayin.siteAddress"></cj-help>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Currency" class="form-label"></label>
+                    <select asp-for="Currency" class="form-select">
+                        <option>EUR</option><option>GBP</option><option>USD</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Amount" class="form-label"></label>
+                    <input asp-for="Amount" class="form-control" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Create card invoice</button>
+    <a class="btn btn-link" asp-action="CardList">Cancel</a>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

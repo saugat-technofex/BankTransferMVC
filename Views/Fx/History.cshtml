@@ -1,0 +1,47 @@
+@model IReadOnlyList<BankTransferMVC.Models.FxRecord>
+@{
+    ViewData["Title"] = "FX history";
+}
+
+<cj-feature feature-key="fxHistory"></cj-feature>
+
+<div class="card">
+    <div class="card-header">
+        FX conversions (@Model.Count)
+        <a class="btn btn-sm btn-primary" asp-action="Index">New quote</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-3 text-muted">No FX conversions yet.</div>
+        }
+        else
+        {
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Created</th>
+                        <th title="@CjDescriptions.Get("shared.clientOrder").Description">Client order</th>
+                        <th title="@CjDescriptions.Get("fx.sellCurrency").Description">Sell</th>
+                        <th title="@CjDescriptions.Get("fx.buyCurrency").Description">Buy</th>
+                        <th>Rate</th>
+                        <th title="@CjDescriptions.Get("iban.status").Description">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td>@r.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td><code>@r.ClientOrder</code></td>
+                            <td>@r.SellAmount.ToString("N2") @r.SellCurrency</td>
+                            <td>@r.BuyAmount.ToString("N2") @r.BuyCurrency</td>
+                            <td>@r.Rate</td>
+                            <td><span class="badge-status s-@r.Status">@r.Status</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

@@ -1,0 +1,101 @@
+@model BankTransferMVC.Models.CreateIbanViewModel
+@{
+    ViewData["Title"] = "Allocate Virtual IBAN";
+}
+
+<cj-feature feature-key="virtualIbanCreate"></cj-feature>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-header">
+            Customer
+            <span class="cj-section-hint">Maps to registrant in CJ API</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="CustomerName" class="form-label"></label>
+                    <input asp-for="CustomerName" class="form-control" placeholder="Julie Peterson" />
+                    <cj-help for-key="iban.customerName"></cj-help>
+                    <span asp-validation-for="CustomerName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ClientCustomerId" class="form-label"></label>
+                    <input asp-for="ClientCustomerId" class="form-control" placeholder="CUST-12345" />
+                    <cj-help for-key="iban.clientCustomerId"></cj-help>
+                    <span asp-validation-for="ClientCustomerId" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" placeholder="customer@example.com" />
+                    <cj-help for-key="iban.email"></cj-help>
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="BirthDate" class="form-label"></label>
+                    <input asp-for="BirthDate" class="form-control" />
+                    <cj-help for-key="iban.birthDate"></cj-help>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Country" class="form-label"></label>
+                    <input asp-for="Country" class="form-control" placeholder="GB" maxlength="2" />
+                    <cj-help for-key="iban.country"></cj-help>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Address <span class="cj-section-hint">registrant.individual.address</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label asp-for="Street" class="form-label"></label>
+                    <input asp-for="Street" class="form-control" placeholder="12 Tourin" />
+                    <cj-help for-key="iban.street"></cj-help>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="City" class="form-label"></label>
+                    <input asp-for="City" class="form-control" placeholder="Rome" />
+                    <cj-help for-key="iban.city"></cj-help>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Zip" class="form-label"></label>
+                    <input asp-for="Zip" class="form-control" placeholder="123455" />
+                    <cj-help for-key="iban.zip"></cj-help>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">IBAN options <span class="cj-section-hint">walletUuid auto-generated on submit</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label asp-for="IbanCountry" class="form-label"></label>
+                    <select asp-for="IbanCountry" class="form-select">
+                        <option>GB</option><option>DE</option><option>FR</option>
+                        <option>ES</option><option>IT</option><option>NL</option>
+                    </select>
+                    <cj-help for-key="iban.ibanCountry"></cj-help>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="IbansGroup" class="form-label"></label>
+                    <input asp-for="IbansGroup" class="form-control" />
+                    <cj-help for-key="iban.ibansGroup"></cj-help>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Allocate IBAN</button>
+        <a class="btn btn-link" asp-action="Index">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

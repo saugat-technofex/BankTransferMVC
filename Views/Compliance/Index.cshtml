@@ -1,0 +1,60 @@
+@model BankTransferMVC.Models.RequisiteCheckViewModel
+@{
+    ViewData["Title"] = "Compliance checks";
+}
+
+<cj-feature feature-key="compliance"></cj-feature>
+
+<form asp-action="Check" method="post">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-header">Requisite check <span class="cj-section-hint">POST /v7/gate/checkRequisite/cop · GET /v7/gate/checkRequisite/bankTransfer/eu/iban/{iban}</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label asp-for="Kind" class="form-label"></label>
+                    <select asp-for="Kind" class="form-select" id="kindSelect">
+                        <option value="cop">UK Confirmation of Payee</option>
+                        <option value="iban">SEPA IBAN reachability</option>
+                    </select>
+                    <cj-help for-key="check.kind"></cj-help>
+                </div>
+                <div class="col-md-9 cop-only">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" placeholder="Account holder name" />
+                    <cj-help for-key="check.copName"></cj-help>
+                </div>
+                <div class="col-md-3 cop-only">
+                    <label asp-for="SortCode" class="form-label"></label>
+                    <input asp-for="SortCode" class="form-control" placeholder="000000" />
+                </div>
+                <div class="col-md-3 cop-only">
+                    <label asp-for="AccountNumber" class="form-label"></label>
+                    <input asp-for="AccountNumber" class="form-control" placeholder="12345678" />
+                </div>
+                <div class="col-md-6 iban-only">
+                    <label asp-for="Iban" class="form-label"></label>
+                    <input asp-for="Iban" class="form-control" placeholder="DE89370400440532013000" />
+                    <cj-help for-key="check.iban"></cj-help>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Run check</button>
+    <a class="btn btn-link" asp-action="History">History</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var sel = document.getElementById('kindSelect');
+            function apply() {
+                var k = sel.value;
+                document.querySelectorAll('.cop-only').forEach(function (el) { el.style.display = k === 'cop' ? '' : 'none'; });
+                document.querySelectorAll('.iban-only').forEach(function (el) { el.style.display = k === 'iban' ? '' : 'none'; });
+            }
+            sel.addEventListener('change', apply); apply();
+        })();
+    </script>
+}

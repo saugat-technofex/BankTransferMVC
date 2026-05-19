@@ -1,0 +1,49 @@
+@model IReadOnlyList<BankTransferMVC.Models.CardPayinRecord>
+@{
+    ViewData["Title"] = "Card pay-ins";
+}
+
+<cj-feature feature-key="cardPayin"></cj-feature>
+
+<div class="card">
+    <div class="card-header">
+        Card invoices (@Model.Count)
+        <a class="btn btn-sm btn-primary" asp-action="Card">New card invoice</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-3 text-muted">No card pay-ins yet. Card pay-ins use <code>POST /v7/gate/invoice/creditCard</code>.</div>
+        }
+        else
+        {
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Created</th>
+                        <th>Client order</th>
+                        <th>Payer</th>
+                        <th>Product</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Hosted checkout</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td>@c.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td><code>@c.ClientOrder</code></td>
+                        <td>@c.PayerName</td>
+                        <td>@c.ProductName</td>
+                        <td>@c.Amount.ToString("N2") @c.Currency</td>
+                        <td><span class="badge-status s-@c.Status">@c.Status</span></td>
+                        <td><a href="@c.RedirectUrl" target="_blank"><code>@c.RedirectUrl</code></a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

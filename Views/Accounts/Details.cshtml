@@ -1,0 +1,42 @@
+@model BankTransferMVC.Models.WalletRecord
+@{
+    ViewData["Title"] = "Wallet details";
+}
+
+<cj-feature feature-key="accounts"></cj-feature>
+
+<div class="card">
+    <div class="card-header">
+        @Model.Name
+        <span class="badge-status s-@Model.Status">@Model.Status</span>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Wallet UUID</dt>
+            <dd class="col-sm-9">
+                <code>@Model.WalletUuid</code>
+                <partial name="_CjDetailNote" model="@("shared.walletUuid")" />
+            </dd>
+            <dt class="col-sm-3">Customer Id</dt>
+            <dd class="col-sm-9">
+                @Model.ClientCustomerId
+                <partial name="_CjDetailNote" model="@("shared.clientCustomerId")" />
+            </dd>
+            <dt class="col-sm-3">Type</dt>
+            <dd class="col-sm-9">@Model.Type</dd>
+            <dt class="col-sm-3">Currency</dt>
+            <dd class="col-sm-9">@Model.Currency</dd>
+            <dt class="col-sm-3">Balance</dt>
+            <dd class="col-sm-9"><strong>@Model.Balance.ToString("N2") @Model.Currency</strong></dd>
+            <dt class="col-sm-3">Country</dt>
+            <dd class="col-sm-9">@Model.Country</dd>
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+            <dt class="col-sm-3">Created</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") UTC</dd>
+        </dl>
+    </div>
+</div>
+
+<a class="btn btn-outline-primary" asp-action="Statement" asp-route-walletUuid="@Model.WalletUuid">View statement</a>
+<a class="btn btn-link" asp-action="Index">Back</a>

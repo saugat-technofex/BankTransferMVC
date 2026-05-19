@@ -1,47 +1,126 @@
-﻿<!DOCTYPE html>
+@inject Microsoft.Extensions.Options.IOptions<BankTransferMVC.Integrations.ClearJunction.ClearJunctionOptions> CjOptions
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - BankTransferMVC</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - Clear Junction Console</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BankTransferMVC.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">BankTransferMVC</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span class="brand-logo">CJ</span>
+                <div>
+                    <div class="brand-title">Clear Junction</div>
+                    <div class="brand-sub">Bank Transfer Console</div>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
+
+            @{
+                var ctx = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+                bool On(params string[] cs) => cs.Any(c => string.Equals(c, ctx, StringComparison.OrdinalIgnoreCase));
+                string Show(bool open) => open ? "show" : "";
+                string Coll(bool open) => open ? "" : "collapsed";
+            }
+            <nav class="sidebar-nav">
+                <a class="nav-link nav-top @(On("Home") ? "active" : "")" asp-controller="Home" asp-action="Index">
+                    <span class="nav-ico">&#9632;</span> Dashboard
+                </a>
+
+                <button class="nav-group-toggle @Coll(On("Accounts"))" data-bs-toggle="collapse" data-bs-target="#grp-accounts">
+                    <span class="nav-ico">&#9783;</span> Accounts <span class="caret">&rsaquo;</span>
+                </button>
+                <div id="grp-accounts" class="collapse @Show(On("Accounts"))">
+                    <a class="nav-link sub" asp-controller="Accounts" asp-action="Index">Wallets</a>
+                    <a class="nav-link sub" asp-controller="Accounts" asp-action="Create">Open wallet</a>
+                    <a class="nav-link sub" asp-controller="Accounts" asp-action="Transfer">Internal transfer</a>
+                </div>
+
+                <button class="nav-group-toggle @Coll(On("VirtualIban", "Payin"))" data-bs-toggle="collapse" data-bs-target="#grp-payin">
+                    <span class="nav-ico">&#8595;</span> Pay-in <span class="caret">&rsaquo;</span>
+                </button>
+                <div id="grp-payin" class="collapse @Show(On("VirtualIban", "Payin"))">
+                    <a class="nav-link sub" asp-controller="VirtualIban" asp-action="Index">Virtual IBANs</a>
+                    <a class="nav-link sub" asp-controller="VirtualIban" asp-action="Create">Allocate IBAN</a>
+                    <a class="nav-link sub" asp-controller="Payin" asp-action="Index">Bank pay-in events</a>
+                    <a class="nav-link sub" asp-controller="Payin" asp-action="Simulate">Simulate bank pay-in</a>
+                    <a class="nav-link sub" asp-controller="Payin" asp-action="CardList">Card invoices</a>
+                    <a class="nav-link sub" asp-controller="Payin" asp-action="Card">New card invoice</a>
+                </div>
+
+                <button class="nav-group-toggle @Coll(On("Fx"))" data-bs-toggle="collapse" data-bs-target="#grp-fx">
+                    <span class="nav-ico">&#8644;</span> Multi-currency <span class="caret">&rsaquo;</span>
+                </button>
+                <div id="grp-fx" class="collapse @Show(On("Fx"))">
+                    <a class="nav-link sub" asp-controller="Fx" asp-action="Index">FX quote &amp; convert</a>
+                    <a class="nav-link sub" asp-controller="Fx" asp-action="History">FX history</a>
+                </div>
+
+                <button class="nav-group-toggle @Coll(On("Payout", "Refund"))" data-bs-toggle="collapse" data-bs-target="#grp-payout">
+                    <span class="nav-ico">&#8593;</span> Pay-out &amp; refund <span class="caret">&rsaquo;</span>
+                </button>
+                <div id="grp-payout" class="collapse @Show(On("Payout", "Refund"))">
+                    <a class="nav-link sub" asp-controller="Payout" asp-action="Index">Payouts</a>
+                    <a class="nav-link sub" asp-controller="Payout" asp-action="Create">New payout</a>
+                    <a class="nav-link sub" asp-controller="Refund" asp-action="Index">Refunds</a>
+                    <a class="nav-link sub" asp-controller="Refund" asp-action="Create">New refund</a>
+                </div>
+
+                <button class="nav-group-toggle @Coll(On("Compliance"))" data-bs-toggle="collapse" data-bs-target="#grp-compliance">
+                    <span class="nav-ico">&#9873;</span> Compliance <span class="caret">&rsaquo;</span>
+                </button>
+                <div id="grp-compliance" class="collapse @Show(On("Compliance"))">
+                    <a class="nav-link sub" asp-controller="Compliance" asp-action="Index">Requisite checks</a>
+                    <a class="nav-link sub" asp-controller="Compliance" asp-action="History">Check history</a>
+                    <a class="nav-link sub" asp-controller="Compliance" asp-action="Approvals">Maker-checker approvals</a>
+                </div>
+
+                <button class="nav-group-toggle @Coll(On("Reports"))" data-bs-toggle="collapse" data-bs-target="#grp-reports">
+                    <span class="nav-ico">&#9783;</span> Reports &amp; events <span class="caret">&rsaquo;</span>
+                </button>
+                <div id="grp-reports" class="collapse @Show(On("Reports"))">
+                    <a class="nav-link sub" asp-controller="Reports" asp-action="Index">Transaction report</a>
+                    <a class="nav-link sub" asp-controller="Reports" asp-action="Events">Webhook events</a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="env-pill @(CjOptions.Value.SimulationMode ? "env-sim" : "env-live")">
+                    @(CjOptions.Value.SimulationMode ? "SIMULATION MODE" : "LIVE MODE")
+                </div>
+                <div class="env-host" title="@CjOptions.Value.BaseUrl">@CjOptions.Value.BaseUrl</div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="topbar">
+                <div class="topbar-title">@ViewData["Title"]</div>
+                <div class="topbar-meta">v7 gate ? @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm 'UTC'")</div>
+            </header>
+
+            @if (TempData["Success"] is string ok)
+            {
+                <div class="alert alert-success" role="alert">@ok</div>
+            }
+            @if (TempData["Error"] is string err)
+            {
+                <div class="alert alert-danger" role="alert">@err</div>
+            }
+
+            <div class="content">
+                @RenderBody()
+            </div>
+
+            <footer class="page-footer">
+                Clear Junction REST API v7 ? Demo console &middot; Use sandbox credentials only.
+            </footer>
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - BankTransferMVC - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

@@ -1,0 +1,52 @@
+@model IReadOnlyList<BankTransferMVC.Models.VirtualIbanRecord>
+@{
+    ViewData["Title"] = "Virtual IBANs";
+}
+
+<cj-feature feature-key="virtualIban"></cj-feature>
+
+<div class="card">
+    <div class="card-header">
+        Allocated virtual IBANs (@Model.Count)
+        <a class="btn btn-sm btn-primary" asp-action="Create">Allocate IBAN</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-3 text-muted">No virtual IBANs allocated yet. Allocate one to receive inbound bank transfers.</div>
+        }
+        else
+        {
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th title="@CjDescriptions.Get("iban.customerName").Description">Customer</th>
+                        <th title="@CjDescriptions.Get("iban.clientCustomerId").Description">Customer Id</th>
+                        <th title="@CjDescriptions.Get("iban.iban").Description">IBAN</th>
+                        <th title="@CjDescriptions.Get("iban.country").Description">Country</th>
+                        <th title="@CjDescriptions.Get("iban.status").Description">Status</th>
+                        <th>Allocated</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td>@r.CustomerName</td>
+                            <td><code>@r.ClientCustomerId</code></td>
+                            <td><code>@r.Iban</code></td>
+                            <td>@r.Country</td>
+                            <td><span class="badge-status s-@r.Status">@r.Status</span></td>
+                            <td>@r.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary"
+                                   asp-action="Details" asp-route-clientOrder="@r.ClientOrder">View</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

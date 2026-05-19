@@ -1,8 +1,116 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model BankTransferMVC.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<cj-feature feature-key="dashboard"></cj-feature>
+
+<div class="stats">
+    <div class="stat-card" title="Virtual IBANs — customer-specific collection accounts for inbound bank transfers">
+        <div class="stat-label">Virtual IBANs</div>
+        <div class="stat-value">@Model.IbanCount</div>
+        <div class="stat-foot">Pay-in collection · POST allocate/v3/create/iban</div>
+    </div>
+    <div class="stat-card" title="Outbound payment instructions submitted to Clear Junction">
+        <div class="stat-label">Payouts</div>
+        <div class="stat-value">@Model.PayoutCount</div>
+        <div class="stat-foot">SEPA · FPS · CHAPS · SWIFT · internal</div>
+    </div>
+    <div class="stat-card" title="Instant FX conversions between wallet currency positions">
+        <div class="stat-label">FX conversions</div>
+        <div class="stat-value">@Model.FxCount</div>
+        <div class="stat-foot">POST fx/instant/rate → transfer</div>
+    </div>
+    <div class="stat-card" title="Inbound payinNotification and payoutNotification events">
+        <div class="stat-label">Webhook events</div>
+        <div class="stat-value">@Model.EventCount</div>
+        <div class="stat-foot">Dedupe by messageUuid</div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                Recent payouts
+                <a class="btn btn-sm btn-primary" asp-controller="Payout" asp-action="Create">New payout</a>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.RecentPayouts.Any())
+                {
+                    <div class="p-3 text-muted">No payouts yet. Create one to get started.</div>
+                }
+                else
+                {
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th title="@CjDescriptions.Get("shared.clientOrder").Description">Client order</th>
+                                <th title="Payment rail (SEPA, FPS, SWIFT, etc.)">Rail</th>
+                                <th title="@CjDescriptions.Get("shared.amount").Description">Amount</th>
+                                <th>Payee</th>
+                                <th title="@CjDescriptions.Get("shared.operStatus").Description">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.RecentPayouts)
+                            {
+                                <tr>
+                                    <td><a asp-controller="Payout" asp-action="Details" asp-route-clientOrder="@p.ClientOrder">@p.ClientOrder</a></td>
+                                    <td><span class="rail-chip">@p.Rail.ToUpperInvariant()</span></td>
+                                    <td>@p.Amount.ToString("N2") @p.Currency</td>
+                                    <td>@p.PayeeName</td>
+                                    <td><span class="badge-status s-@p.OperStatus">@p.OperStatus</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">Recent events</div>
+            <div class="card-body">
+                @if (!Model.RecentEvents.Any())
+                {
+                    <div class="text-muted">No webhook activity yet.</div>
+                }
+                else
+                {
+                    <div class="timeline">
+                        @foreach (var e in Model.RecentEvents)
+                        {
+                            <div class="timeline-item">
+                                <div class="timeline-time">@e.ReceivedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") UTC</div>
+                                <div class="timeline-title">@e.Type · @e.ClientOrder</div>
+                                <div class="timeline-body">
+                                    @e.Amount.ToString("N2") @e.Currency ·
+                                    oper: <span class="badge-status s-@e.OperStatus">@e.OperStatus</span>
+                                    � compliance: <span class="badge-status s-@e.ComplianceStatus">@e.ComplianceStatus</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Integration</div>
+            <div class="card-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-4">Mode</dt>
+                    <dd class="col-8"><strong>@(Model.SimulationMode ? "Simulation" : "Live")</strong>
+                        <span class="cj-field-note">Simulation returns canned CJ responses without network calls.</span>
+                    </dd>
+                    <dt class="col-4">Base URL</dt>
+                    <dd class="col-8"><code style="font-size:11px">@Model.BaseUrl</code></dd>
+                    <dt class="col-4">Auth</dt>
+                    <dd class="col-8">Headers: <code>Date</code>, <code>X-API-KEY</code>, <code>Authorization</code> (request signature)</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
 </div>

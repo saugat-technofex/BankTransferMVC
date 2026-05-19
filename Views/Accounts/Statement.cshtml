@@ -1,0 +1,46 @@
+@model IReadOnlyList<BankTransferMVC.Models.WebhookEvent>
+@{
+    ViewData["Title"] = "Wallet statement";
+    var wallet = (BankTransferMVC.Models.WalletRecord?)ViewBag.Wallet;
+}
+
+<cj-feature feature-key="walletStatement"></cj-feature>
+
+<div class="card">
+    <div class="card-header">
+        Statement — @wallet?.Name (@wallet?.Currency)
+        <a class="btn btn-sm btn-link" asp-action="Index">Back to wallets</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-3 text-muted">No movements recorded for this wallet yet (simulated <code>POST /v7/gate/wallets/statement</code>).</div>
+        }
+        else
+        {
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Type</th>
+                        <th>Client order</th>
+                        <th>Amount</th>
+                        <th>Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td>@e.ReceivedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td><span class="rail-chip">@e.Type</span></td>
+                        <td><code>@e.ClientOrder</code></td>
+                        <td>@e.Amount.ToString("N2") @e.Currency</td>
+                        <td class="small text-muted">@e.Payload</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

@@ -1,0 +1,39 @@
+@model IReadOnlyList<BankTransferMVC.Models.RequisiteCheckRecord>
+@{
+    ViewData["Title"] = "Check history";
+}
+
+<cj-feature feature-key="compliance"></cj-feature>
+
+<div class="card">
+    <div class="card-header">
+        Recent checks (@Model.Count)
+        <a class="btn btn-sm btn-primary" asp-action="Index">New check</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-3 text-muted">No checks yet.</div>
+        }
+        else
+        {
+            <table class="table mb-0">
+                <thead>
+                    <tr><th>When</th><th>Kind</th><th>Input</th><th>Result</th><th>Detail</th></tr>
+                </thead>
+                <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td>@c.CheckedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td><span class="rail-chip">@c.Kind</span></td>
+                        <td><code>@c.Input</code></td>
+                        <td><span class="badge-status s-@c.Result">@c.Result</span></td>
+                        <td class="small text-muted">@c.Detail</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

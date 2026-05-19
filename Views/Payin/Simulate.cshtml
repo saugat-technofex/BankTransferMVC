@@ -1,0 +1,75 @@
+@model BankTransferMVC.Models.SimulatePayinViewModel
+@{
+    ViewData["Title"] = "Simulate pay-in";
+    var ibans = (IReadOnlyList<BankTransferMVC.Models.VirtualIbanRecord>?)ViewBag.Ibans
+        ?? new List<BankTransferMVC.Models.VirtualIbanRecord>();
+}
+
+<cj-feature feature-key="payinSimulate"></cj-feature>
+
+<form asp-action="Simulate" method="post">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-header">Simulated payinNotification</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="ClientOrder" class="form-label">Virtual IBAN</label>
+                    <select asp-for="ClientOrder" class="form-select">
+                        @if (!ibans.Any())
+                        {
+                            <option value="">-- allocate an IBAN first --</option>
+                        }
+                        @foreach (var i in ibans)
+                        {
+                            <option value="@i.ClientOrder">@i.Iban — @i.CustomerName</option>
+                        }
+                    </select>
+                    <cj-help for-key="payin.clientOrder"></cj-help>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Currency" class="form-label"></label>
+                    <select asp-for="Currency" class="form-select">
+                        <option>EUR</option><option>GBP</option><option>USD</option>
+                        <option>CHF</option><option>PLN</option>
+                    </select>
+                    <cj-help for-key="payin.currency"></cj-help>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Amount" class="form-label"></label>
+                    <input asp-for="Amount" class="form-control" />
+                    <cj-help for-key="payin.amount"></cj-help>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PayerName" class="form-label"></label>
+                    <input asp-for="PayerName" class="form-control" />
+                    <cj-help for-key="payin.payerName"></cj-help>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="Status" class="form-label"></label>
+                    <select asp-for="Status" class="form-select">
+                        <option>pending</option><option>completed</option>
+                    </select>
+                    <cj-help for-key="payin.status"></cj-help>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="OperStatus" class="form-label">Oper status</label>
+                    <select asp-for="OperStatus" class="form-select">
+                        <option>captured</option><option>pending</option><option>settled</option>
+                    </select>
+                    <cj-help for-key="payin.operStatus"></cj-help>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="ComplianceStatus" class="form-label">Compliance</label>
+                    <select asp-for="ComplianceStatus" class="form-select">
+                        <option>pending</option><option>approved</option><option>declined</option>
+                    </select>
+                    <cj-help for-key="payin.complianceStatus"></cj-help>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@(!ibans.Any())">Send notification</button>
+    <a class="btn btn-link" asp-action="Index">Back</a>
+</form>

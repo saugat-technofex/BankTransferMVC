@@ -1,31 +1,44 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
+using BankTransferMVC.Integrations.ClearJunction;
 using BankTransferMVC.Models;
+using BankTransferMVC.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace BankTransferMVC.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
+    private readonly ITransferStore _store;
+    private readonly ClearJunctionOptions _options;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ITransferStore store, IOptions<ClearJunctionOptions> options)
     {
-        _logger = logger;
+        _store = store;
+        _options = options.Value;
     }
 
     public IActionResult Index()
     {
-        return View();
+        var payouts = _store.ListPayouts();
+        var events = _store.ListEvents();
+        var vm = new DashboardViewModel
+        {
+            IbanCount = _store.ListIbans().Count,
+            PayoutCount = payouts.Count,
+            FxCount = _store.ListFx().Count,
+            EventCount = events.Count,
+            SimulationMode = _options.SimulationMode,
+            BaseUrl = _options.BaseUrl,
+            RecentPayouts = payouts.Take(5).ToList(),
+            RecentEvents = events.Take(5).ToList()
+        };
+        return View(vm);
     }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+    public IActionResult Privacy() => View();
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-    }
+    public IActionResult Error() =>
+        View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
 }

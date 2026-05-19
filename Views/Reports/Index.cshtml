@@ -1,0 +1,42 @@
+@model BankTransferMVC.Models.TransactionReportViewModel
+@{
+    ViewData["Title"] = "Transaction report";
+}
+
+<cj-feature feature-key="report"></cj-feature>
+
+<form asp-action="Index" method="post">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-header">Filters <span class="cj-section-hint">POST /v7/gate/reports/transactionReport</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label asp-for="From" class="form-label"></label>
+                    <input asp-for="From" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="To" class="form-label"></label>
+                    <input asp-for="To" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Type" class="form-label"></label>
+                    <select asp-for="Type" class="form-select">
+                        <option value="all">All</option>
+                        <option value="payin">Pay-in</option>
+                        <option value="payout">Payout</option>
+                        <option value="refund">Refund</option>
+                        <option value="walletTransfer">Wallet transfer</option>
+                        <option value="invoice">Card invoice</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="WalletUuid" class="form-label"></label>
+                    <input asp-for="WalletUuid" class="form-control" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Generate report</button>
+    <a class="btn btn-link" asp-action="Events">All webhook events</a>
+</form>

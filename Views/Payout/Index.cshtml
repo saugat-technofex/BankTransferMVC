@@ -1,0 +1,56 @@
+@model IReadOnlyList<BankTransferMVC.Models.PayoutRecord>
+@{
+    ViewData["Title"] = "Payouts";
+}
+
+<cj-feature feature-key="payout"></cj-feature>
+
+<div class="card">
+    <div class="card-header">
+        Payouts (@Model.Count)
+        <a class="btn btn-sm btn-primary" asp-action="Create">New payout</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-3 text-muted">No payouts yet.</div>
+        }
+        else
+        {
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Created</th>
+                        <th title="@CjDescriptions.Get("shared.clientOrder").Description">Client order</th>
+                        <th title="@CjDescriptions.Get("payout.rail").Description">Rail</th>
+                        <th title="@CjDescriptions.Get("shared.amount").Description">Amount</th>
+                        <th title="@CjDescriptions.Get("payout.payeeName").Description">Payee</th>
+                        <th title="@CjDescriptions.Get("payout.payeeCountry").Description">Country</th>
+                        <th>Status</th>
+                        <th title="@CjDescriptions.Get("shared.operStatus").Description">Operational</th>
+                        <th title="@CjDescriptions.Get("shared.complianceStatus").Description">Compliance</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model)
+                    {
+                        <tr>
+                            <td>@p.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td><code>@p.ClientOrder</code></td>
+                            <td><span class="rail-chip">@p.Rail.ToUpperInvariant()</span></td>
+                            <td>@p.Amount.ToString("N2") @p.Currency</td>
+                            <td>@p.PayeeName</td>
+                            <td>@p.PayeeCountry</td>
+                            <td><span class="badge-status s-@p.Status">@p.Status</span></td>
+                            <td><span class="badge-status s-@p.OperStatus">@p.OperStatus</span></td>
+                            <td><span class="badge-status s-@p.ComplianceStatus">@p.ComplianceStatus</span></td>
+                            <td><a class="btn btn-sm btn-outline-primary"
+                                   asp-action="Details" asp-route-clientOrder="@p.ClientOrder">View</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

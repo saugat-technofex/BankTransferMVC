@@ -1,0 +1,57 @@
+@model BankTransferMVC.Models.CreateRefundViewModel
+@{
+    ViewData["Title"] = "New refund";
+    var payouts = (IReadOnlyList<BankTransferMVC.Models.PayoutRecord>?)ViewBag.Payouts
+        ?? new List<BankTransferMVC.Models.PayoutRecord>();
+    var payins = (List<BankTransferMVC.Models.WebhookEvent>?)ViewBag.Payins
+        ?? new List<BankTransferMVC.Models.WebhookEvent>();
+}
+
+<cj-feature feature-key="refundCreate"></cj-feature>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-header">Refund instruction <span class="cj-section-hint">/v7/gate/refund</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label asp-for="Direction" class="form-label"></label>
+                    <select asp-for="Direction" class="form-select">
+                        <option value="outgoing">Outgoing (refund a payout we sent)</option>
+                        <option value="incoming">Incoming (return a pay-in we received)</option>
+                    </select>
+                    <cj-help for-key="refund.direction"></cj-help>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="OriginalClientOrder" class="form-label"></label>
+                    <input asp-for="OriginalClientOrder" class="form-control" list="origRefs" placeholder="PAY-… or IBAN-…" />
+                    <datalist id="origRefs">
+                        @foreach (var p in payouts) { <option value="@p.ClientOrder">payout @p.Amount.ToString("N2") @p.Currency → @p.PayeeName</option> }
+                        @foreach (var e in payins) { <option value="@e.ClientOrder">payin @e.Amount.ToString("N2") @e.Currency</option> }
+                    </datalist>
+                    <cj-help for-key="refund.originalClientOrder"></cj-help>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="Currency" class="form-label"></label>
+                    <select asp-for="Currency" class="form-select">
+                        <option>EUR</option><option>GBP</option><option>USD</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label asp-for="Amount" class="form-label"></label>
+                    <input asp-for="Amount" class="form-control" />
+                </div>
+                <div class="col-md-12">
+                    <label asp-for="Reason" class="form-label"></label>
+                    <input asp-for="Reason" class="form-control" />
+                    <cj-help for-key="refund.reason"></cj-help>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit refund</button>
+    <a class="btn btn-link" asp-action="Index">Cancel</a>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,65 @@
+@model BankTransferMVC.Models.VirtualIbanRecord
+@{
+    ViewData["Title"] = "Virtual IBAN details";
+}
+
+<cj-feature feature-key="virtualIban"></cj-feature>
+
+<div class="card">
+    <div class="card-header">
+        @Model.CustomerName
+        <span class="badge-status s-@Model.Status">@Model.Status</span>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">IBAN</dt>
+            <dd class="col-sm-9">
+                <code style="font-size:14px">@Model.Iban</code>
+                <partial name="_CjDetailNote" model="@("iban.iban")" />
+            </dd>
+
+            <dt class="col-sm-3">Client order</dt>
+            <dd class="col-sm-9">
+                <code>@Model.ClientOrder</code>
+                <partial name="_CjDetailNote" model="@("shared.clientOrder")" />
+            </dd>
+
+            <dt class="col-sm-3">CJ order reference</dt>
+            <dd class="col-sm-9">
+                <code>@Model.OrderReference</code>
+                <partial name="_CjDetailNote" model="@("shared.orderReference")" />
+            </dd>
+
+            <dt class="col-sm-3">Wallet UUID</dt>
+            <dd class="col-sm-9">
+                <code>@Model.WalletUuid</code>
+                <partial name="_CjDetailNote" model="@("shared.walletUuid")" />
+            </dd>
+
+            <dt class="col-sm-3">Customer Id</dt>
+            <dd class="col-sm-9">
+                @Model.ClientCustomerId
+                <partial name="_CjDetailNote" model="@("iban.clientCustomerId")" />
+            </dd>
+
+            <dt class="col-sm-3">Country</dt>
+            <dd class="col-sm-9">
+                @Model.Country
+                <partial name="_CjDetailNote" model="@("iban.country")" />
+            </dd>
+
+            <dt class="col-sm-3">Allocated</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") UTC</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Next step</div>
+    <div class="card-body">
+        <p class="mb-2 cj-desc">Share these bank details with the payer. Inbound credits trigger <code>payinNotification</code> to your webhook URL.</p>
+        <pre class="payload">@($"Beneficiary: {Model.CustomerName}\nIBAN: {Model.Iban}\nReference: {Model.ClientOrder}")</pre>
+        <a class="btn btn-primary" asp-controller="Payin" asp-action="Simulate">Simulate pay-in</a>
+        <a class="btn btn-outline-primary" asp-action="Index">Back to list</a>
+    </div>
+</div>
