@@ -1,0 +1,13 @@
+{
+  "Simulation": true,
+  "Settings": {
+    "MinLatencyMs": 0,
+    "MaxLatencyMs": 50,
+    "Scenario": "success",
+    "AutoAdvance": true,
+    "AutoAdvanceIntervalSeconds": 2,
+    "DeliverWebhooks": true
+  },
+  "LastChangedAt": "2026-05-19T11:48:31.8024528+00:00",
+  "LastChangedBy": "anonymous"
+}

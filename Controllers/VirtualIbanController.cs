@@ -32,7 +32,23 @@ public class VirtualIbanController : Controller
     {
         ViewBag.ExistingCustomerIds = _store.ListWallets()
             .Select(w => w.ClientCustomerId).Distinct().ToList();
-        return View(new CreateIbanViewModel { ClientCustomerId = _idGen.Next() });
+
+        return View(new CreateIbanViewModel
+        {
+            ClientCustomerId = _idGen.Next(),
+            Registrant = new CjPartyViewModel
+            {
+                EntityType = "individual",
+                FirstName = "Julie",
+                LastName = "Peterson",
+                BirthDate = new DateTime(1990, 1, 1),
+                Email = "julie@example.com",
+                Country = "GB",
+                Street = "12 Tourin",
+                City = "London",
+                Zip = "EC1A1AA"
+            }
+        });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -43,6 +59,7 @@ public class VirtualIbanController : Controller
             form.ClientCustomerId = _idGen.Next();
             ModelState.Remove(nameof(form.ClientCustomerId));
         }
+
         if (!ModelState.IsValid)
         {
             ViewBag.ExistingCustomerIds = _store.ListWallets()
@@ -50,11 +67,43 @@ public class VirtualIbanController : Controller
             return View(form);
         }
 
-        var parts = (form.CustomerName ?? "").Split(' ', 2);
-        var first = parts.Length > 0 ? parts[0] : "First";
-        var last = parts.Length > 1 ? parts[1] : "Last";
-
         var clientOrder = $"IBAN-{DateTime.UtcNow:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
+        var r = form.Registrant;
+
+        var address = new CjAddress
+        {
+            Country = r.Country ?? "",
+            City = r.City ?? "",
+            Street = r.Street ?? "",
+            Zip = r.Zip ?? ""
+        };
+
+        var registrantEntity = new CjEntity
+        {
+            ClientCustomerId = form.ClientCustomerId
+        };
+        if (string.Equals(r.EntityType, "corporate", StringComparison.OrdinalIgnoreCase))
+        {
+            registrantEntity.Corporate = new CjCorporate
+            {
+                Name = r.CorporateName ?? "",
+                Email = r.Email ?? "",
+                RegistrationNumber = r.RegistrationNumber ?? "",
+                IncorporationCountry = r.IncorporationCountry ?? r.Country ?? "",
+                Address = address
+            };
+        }
+        else
+        {
+            registrantEntity.Individual = new CjIndividual
+            {
+                FirstName = r.FirstName ?? "",
+                LastName = r.LastName ?? "",
+                Email = r.Email ?? "",
+                BirthDate = (r.BirthDate ?? new DateTime(1990, 1, 1)).ToString("yyyy-MM-dd"),
+                Address = address
+            };
+        }
 
         var request = new AllocateIbanRequest
         {
@@ -63,24 +112,7 @@ public class VirtualIbanController : Controller
             WalletUuid = Guid.NewGuid().ToString(),
             IbanCountry = form.IbanCountry,
             IbansGroup = form.IbansGroup,
-            Registrant = new CjEntity
-            {
-                ClientCustomerId = form.ClientCustomerId,
-                Individual = new CjIndividual
-                {
-                    FirstName = first,
-                    LastName = last,
-                    Email = form.Email,
-                    BirthDate = form.BirthDate.ToString("yyyy-MM-dd"),
-                    Address = new CjAddress
-                    {
-                        Country = form.Country,
-                        City = form.City,
-                        Street = form.Street,
-                        Zip = form.Zip
-                    }
-                }
-            }
+            Registrant = registrantEntity
         };
 
         var resp = await _cj.AllocateIbanAsync(request);
@@ -92,8 +124,8 @@ public class VirtualIbanController : Controller
             Iban = resp.Iban ?? "",
             Country = form.IbanCountry,
             WalletUuid = request.WalletUuid ?? "",
-            CustomerName = form.CustomerName ?? "",
-            ClientCustomerId = form.ClientCustomerId ?? "",
+            CustomerName = r.DisplayName(),
+            ClientCustomerId = form.ClientCustomerId,
             Status = resp.Status
         });
 

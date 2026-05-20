@@ -1,14 +1,23 @@
-@model IReadOnlyList<BankTransferMVC.Models.WebhookEvent>
+@model IReadOnlyList<BankTransferMVC.Integrations.ClearJunction.Models.TransactionReportRow>
 @{
     ViewData["Title"] = "Report results";
     var form = (BankTransferMVC.Models.TransactionReportViewModel?)ViewBag.Form;
+    var mode = (string?)ViewBag.Mode ?? "Simulation";
 }
 
 <cj-feature feature-key="report"></cj-feature>
 
 <div class="card">
-    <div class="card-header">
-        Results — @form?.From.ToString("yyyy-MM-dd") to @form?.To.ToString("yyyy-MM-dd") · type=@form?.Type (@Model.Count rows)
+    <div class="card-header d-flex flex-wrap gap-2 align-items-center">
+        <span>
+            Results &mdash;
+            <code>@form?.From.ToString("yyyy-MM-dd")</code> &rarr;
+            <code>@form?.To.ToString("yyyy-MM-dd")</code>
+            &middot; type=<code>@form?.Type</code>
+            &middot; wallet=<code>@(string.IsNullOrEmpty(form?.WalletUuid) ? "(all)" : form!.WalletUuid)</code>
+            &middot; @Model.Count rows
+        </span>
+        <span class="badge @(mode == "Simulation" ? "bg-info" : "bg-danger") ms-auto">@mode</span>
         <a class="btn btn-sm btn-link" asp-action="Index">New report</a>
     </div>
     <div class="card-body p-0">
@@ -21,24 +30,24 @@
             <table class="table mb-0">
                 <thead>
                     <tr>
-                        <th>Timestamp</th>
+                        <th>Created at</th>
                         <th>Type</th>
                         <th>Client order</th>
-                        <th>Amount</th>
-                        <th>Operational</th>
-                        <th>Compliance</th>
+                        <th>Order reference</th>
+                        <th class="text-end">Amount</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                @foreach (var e in Model)
+                @foreach (var r in Model)
                 {
                     <tr>
-                        <td>@e.ReceivedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                        <td><span class="rail-chip">@e.Type</span></td>
-                        <td><code>@e.ClientOrder</code></td>
-                        <td>@e.Amount.ToString("N2") @e.Currency</td>
-                        <td><span class="badge-status s-@e.OperStatus">@e.OperStatus</span></td>
-                        <td><span class="badge-status s-@e.ComplianceStatus">@e.ComplianceStatus</span></td>
+                        <td><code>@r.CreatedAt</code></td>
+                        <td><span class="rail-chip">@r.TransactionType</span></td>
+                        <td><code>@r.ClientOrder</code></td>
+                        <td><code>@r.OrderReference</code></td>
+                        <td class="text-end">@r.Amount.ToString("N2") @r.Currency</td>
+                        <td><span class="badge-status s-@r.Status">@r.Status</span></td>
                     </tr>
                 }
                 </tbody>

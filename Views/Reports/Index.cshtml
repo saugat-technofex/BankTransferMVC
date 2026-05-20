@@ -7,21 +7,30 @@
 
 <form asp-action="Index" method="post">
     @Html.AntiForgeryToken()
+    <partial name="_CjValidationSummary" />
+
     <div class="card">
         <div class="card-header">Filters <span class="cj-section-hint">POST /v7/gate/reports/transactionReport</span></div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label asp-for="From" class="form-label"></label>
+                    <cj-label asp-for="From"></cj-label>
                     <input asp-for="From" class="form-control" />
+                    <span asp-validation-for="From" class="text-danger small"></span>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="To" class="form-label"></label>
+                    <cj-label asp-for="To"></cj-label>
                     <input asp-for="To" class="form-control" />
+                    <span asp-validation-for="To" class="text-danger small"></span>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="Type" class="form-label"></label>
-                    <select asp-for="Type" class="form-select cj-lookup" data-cj-lookup="local">
+                    <cj-label asp-for="WalletUuid"></cj-label>
+                    <input asp-for="WalletUuid" class="form-control" placeholder="walletUuid" />
+                    <span asp-validation-for="WalletUuid" class="text-danger small"></span>
+                </div>
+                <div class="col-md-3">
+                    <cj-label asp-for="Type"></cj-label>
+                    <select asp-for="Type" class="form-select">
                         <option value="all">All</option>
                         <option value="payin">Pay-in</option>
                         <option value="payout">Pay-out</option>
@@ -30,10 +39,6 @@
                         <option value="invoice">Card invoice</option>
                         <option value="instantFxTransfer">Instant FX</option>
                     </select>
-                </div>
-                <div class="col-md-3">
-                    <label asp-for="WalletUuid" class="form-label"></label>
-                    <input asp-for="WalletUuid" class="form-control" />
                 </div>
             </div>
         </div>

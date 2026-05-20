@@ -13,17 +13,23 @@ public class PayoutController : Controller
     private readonly ITransferStore _store;
     private readonly ClearJunctionOptions _options;
     private readonly IClientCustomerIdGenerator _idGen;
+    private readonly ICjModeService _mode;
+    private readonly ICjSimulator _sim;
 
     public PayoutController(
         IClearJunctionClient cj,
         ITransferStore store,
         IOptions<ClearJunctionOptions> options,
-        IClientCustomerIdGenerator idGen)
+        IClientCustomerIdGenerator idGen,
+        ICjModeService mode,
+        ICjSimulator sim)
     {
         _cj = cj;
         _store = store;
         _options = options.Value;
         _idGen = idGen;
+        _mode = mode;
+        _sim = sim;
     }
 
     public IActionResult Index() => View(_store.ListPayouts());
@@ -34,7 +40,34 @@ public class PayoutController : Controller
         var payerId = existing?.ClientCustomerId ?? _idGen.Next();
         ViewBag.ExistingCustomerIds = _store.ListWallets()
             .Select(w => w.ClientCustomerId).Distinct().ToList();
-        return View(new CreatePayoutViewModel { PayerClientCustomerId = payerId });
+
+        return View(new CreatePayoutViewModel
+        {
+            PayerClientCustomerId = payerId,
+            Payer = new CjPartyViewModel
+            {
+                EntityType = "corporate",
+                CorporateName = "BankTransferMVC PoC Ltd",
+                RegistrationNumber = "PoC-001",
+                IncorporationCountry = "GB",
+                Email = "ops@example.com",
+                Country = "GB",
+                City = "London",
+                Street = "1 PoC Street",
+                Zip = "EC1A1AA"
+            },
+            Payee = new CjPartyViewModel
+            {
+                EntityType = "individual",
+                Country = "DE",
+                FirstName = "Julie",
+                LastName = "Peterson",
+                Email = "julie@example.com",
+                Street = "12 Tourin",
+                City = "Rome",
+                Zip = "123455"
+            }
+        });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -45,6 +78,7 @@ public class PayoutController : Controller
             form.PayerClientCustomerId = _idGen.Next();
             ModelState.Remove(nameof(form.PayerClientCustomerId));
         }
+
         if (!ModelState.IsValid)
         {
             ViewBag.ExistingCustomerIds = _store.ListWallets()
@@ -60,54 +94,19 @@ public class PayoutController : Controller
             Currency = form.Currency,
             Amount = form.Amount,
             Description = form.Description,
-            PostbackUrl = BuildPostbackUrl("/webhooks/cj/payout"),
+            PostbackUrl = form.PostbackUrl ?? BuildPostbackUrl("/webhooks/cj/payout"),
             PaymentPurposeCodes = new CjPaymentPurpose
             {
-                Code = form.PurposeCode,
-                Category = form.PurposeCategory
+                Code = form.PurposeCode ?? "INTP",
+                Category = form.PurposeCategory ?? "GP2P"
             },
-            Payer = new CjEntity
-            {
-                ClientCustomerId = string.IsNullOrWhiteSpace(form.PayerClientCustomerId)
-                    ? null : form.PayerClientCustomerId,
-                WalletUuid = string.IsNullOrWhiteSpace(form.PayerWalletUuid)
-                    ? null : form.PayerWalletUuid,
-                Corporate = new CjCorporate
-                {
-                    Name = "BankTransferMVC PoC Ltd",
-                    Email = "ops@example.com",
-                    RegistrationNumber = "PoC-001",
-                    IncorporationCountry = "GB",
-                    Address = new CjAddress { Country = "GB", City = "London", Street = "1 PoC Street", Zip = "EC1A1AA" }
-                }
-            },
+            Payer = MapEntity(form.Payer, form.PayerClientCustomerId, form.PayerWalletUuid),
             PayerRequisite = new CjRequisite
             {
                 Iban = string.IsNullOrWhiteSpace(form.PayerIban) ? null : form.PayerIban
             },
-            Payee = new CjEntity
-            {
-                Individual = new CjIndividual
-                {
-                    FirstName = SplitFirst(form.PayeeName),
-                    LastName = SplitLast(form.PayeeName),
-                    Email = form.PayeeEmail,
-                    BirthDate = "1990-01-01",
-                    Address = new CjAddress { Country = form.PayeeCountry }
-                }
-            },
-            PayeeRequisite = BuildPayeeRequisite(form),
-            UltimatePayee = new CjEntity
-            {
-                Individual = new CjIndividual
-                {
-                    FirstName = SplitFirst(form.PayeeName),
-                    LastName = SplitLast(form.PayeeName),
-                    Email = form.PayeeEmail,
-                    BirthDate = "1990-01-01",
-                    Address = new CjAddress { Country = form.PayeeCountry }
-                }
-            }
+            Payee = MapEntity(form.Payee, null, null),
+            PayeeRequisite = BuildPayeeRequisite(form)
         };
 
         var resp = await _cj.CreatePayoutAsync(form.Rail, request);
@@ -119,9 +118,9 @@ public class PayoutController : Controller
             Rail = form.Rail,
             Currency = form.Currency,
             Amount = form.Amount,
-            PayeeName = form.PayeeName,
-            PayeeAccount = form.PayeeIban,
-            PayeeCountry = form.PayeeCountry,
+            PayeeName = form.Payee.DisplayName(),
+            PayeeAccount = form.PayeeIban ?? form.PayeeAccountNumber ?? "",
+            PayeeCountry = form.Payee.Country ?? "",
             Description = form.Description,
             Status = resp.Status,
             OperStatus = resp.SubStatuses.OperStatus,
@@ -148,7 +147,7 @@ public class PayoutController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Refresh(string clientOrder)
     {
-        if (!_options.SimulationMode)
+        if (_mode.IsLive)
         {
             var status = await _cj.GetPayoutStatusAsync(clientOrder);
             if (status is not null)
@@ -162,23 +161,59 @@ public class PayoutController : Controller
         }
         else
         {
-            // Simulation: advance the lifecycle each click so the UI is demoable.
             var rec = _store.GetPayout(clientOrder);
             if (rec is not null)
             {
-                var next = rec.OperStatus switch
+                var next = _sim.AdvanceLifecycle(rec.Status, rec.OperStatus, rec.ComplianceStatus, _mode.Simulation.Scenario);
+                if (next is not null)
                 {
-                    "pending" => "processing",
-                    "processing" => "settled",
-                    _ => rec.OperStatus
-                };
-                var compl = rec.ComplianceStatus == "pending" ? "approved" : rec.ComplianceStatus;
-                var newStatus = next == "settled" ? "completed" : rec.Status;
-                _store.UpdatePayoutStatus(clientOrder, newStatus, next, compl);
+                    _store.UpdatePayoutStatus(clientOrder, next.Value.Status, next.Value.OperStatus, next.Value.ComplianceStatus);
+                }
             }
         }
 
         return RedirectToAction(nameof(Details), new { clientOrder });
+    }
+
+    private static CjEntity MapEntity(CjPartyViewModel party, string? clientCustomerId, string? walletUuid)
+    {
+        var entity = new CjEntity
+        {
+            ClientCustomerId = string.IsNullOrWhiteSpace(clientCustomerId) ? null : clientCustomerId,
+            WalletUuid = string.IsNullOrWhiteSpace(walletUuid) ? null : walletUuid
+        };
+
+        var address = new CjAddress
+        {
+            Country = party.Country ?? "",
+            City = party.City ?? "",
+            Street = party.Street ?? "",
+            Zip = party.Zip ?? ""
+        };
+
+        if (string.Equals(party.EntityType, "corporate", StringComparison.OrdinalIgnoreCase))
+        {
+            entity.Corporate = new CjCorporate
+            {
+                Name = party.CorporateName ?? "",
+                Email = party.Email ?? "",
+                RegistrationNumber = party.RegistrationNumber ?? "",
+                IncorporationCountry = party.IncorporationCountry ?? party.Country ?? "",
+                Address = address
+            };
+        }
+        else
+        {
+            entity.Individual = new CjIndividual
+            {
+                FirstName = party.FirstName ?? "",
+                LastName = party.LastName ?? "",
+                Email = party.Email ?? "",
+                BirthDate = (party.BirthDate ?? new DateTime(1990, 1, 1)).ToString("yyyy-MM-dd"),
+                Address = address
+            };
+        }
+        return entity;
     }
 
     private static CjRequisite BuildPayeeRequisite(CreatePayoutViewModel form)
@@ -186,11 +221,10 @@ public class PayoutController : Controller
         var req = new CjRequisite
         {
             Iban = string.IsNullOrWhiteSpace(form.PayeeIban) ? null : form.PayeeIban,
-            BankSwiftCode = string.IsNullOrWhiteSpace(form.PayeeBankSwift) ? null : form.PayeeBankSwift,
-            Name = string.IsNullOrWhiteSpace(form.PayeeName) ? null : form.PayeeName
+            Name = form.Payee.DisplayName()
         };
 
-        if (form.Rail == "fps" || form.Rail == "chaps" || form.Rail == "chapsCrossScheme")
+        if (form.Rail is "fps" or "chaps" or "chapsCrossScheme")
         {
             req.AccountNumber = form.PayeeAccountNumber;
             req.SortCode = form.PayeeSortCode;
@@ -198,35 +232,32 @@ public class PayoutController : Controller
 
         if (form.Rail == "swift")
         {
+            req.BankSwiftCode = form.Institution.BankSwiftCode;
             req.Institution = new CjInstitution
             {
-                BankSwiftCode = form.PayeeBankSwift ?? "",
-                Name = form.PayeeBankName ?? "",
-                ClearingSystemIdCode = form.ClearingSystemIdCode,
-                MemberId = form.ClearingMemberId,
-                Address = new CjAddress { Country = form.PayeeCountry }
+                BankSwiftCode = form.Institution.BankSwiftCode ?? "",
+                Name = form.Institution.BankName ?? "",
+                ClearingSystemIdCode = form.Institution.ClearingSystemIdCode,
+                MemberId = form.Institution.MemberId,
+                Address = new CjAddress
+                {
+                    Country = form.Institution.Country ?? "",
+                    City = form.Institution.City ?? "",
+                    Street = form.Institution.Street ?? "",
+                    Zip = form.Institution.Zip ?? ""
+                }
             };
-
-            if (!string.IsNullOrWhiteSpace(form.IntermediaryBankSwift))
+            if (!string.IsNullOrWhiteSpace(form.IntermediaryInstitution.BankSwiftCode))
             {
                 req.IntermediaryInstitution = new CjInstitution
                 {
-                    BankSwiftCode = form.IntermediaryBankSwift,
-                    Name = form.IntermediaryBankName ?? ""
+                    BankSwiftCode = form.IntermediaryInstitution.BankSwiftCode,
+                    Name = form.IntermediaryInstitution.BankName ?? ""
                 };
             }
         }
 
         return req;
-    }
-
-    private static string SplitFirst(string fullName) =>
-        (fullName ?? "").Split(' ', 2).FirstOrDefault() ?? "";
-
-    private static string SplitLast(string fullName)
-    {
-        var parts = (fullName ?? "").Split(' ', 2);
-        return parts.Length > 1 ? parts[1] : "";
     }
 
     private string? BuildPostbackUrl(string path)

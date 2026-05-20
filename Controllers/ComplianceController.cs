@@ -1,3 +1,5 @@
+using BankTransferMVC.Integrations.ClearJunction;
+using BankTransferMVC.Integrations.ClearJunction.Models;
 using BankTransferMVC.Models;
 using BankTransferMVC.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,46 +9,48 @@ namespace BankTransferMVC.Controllers;
 public class ComplianceController : Controller
 {
     private readonly ITransferStore _store;
+    private readonly IClearJunctionClient _cj;
 
-    public ComplianceController(ITransferStore store) => _store = store;
+    public ComplianceController(ITransferStore store, IClearJunctionClient cj)
+    {
+        _store = store;
+        _cj = cj;
+    }
 
     public IActionResult Index() => View(new RequisiteCheckViewModel());
 
     [HttpPost, ValidateAntiForgeryToken]
-    public IActionResult Check(RequisiteCheckViewModel form)
+    public async Task<IActionResult> Check(RequisiteCheckViewModel form)
     {
+        if (!ModelState.IsValid) return View(nameof(Index), form);
+
+        string input;
         string result;
         string detail;
-        string input;
         switch (form.Kind)
         {
             case "cop":
                 input = $"{form.Name} · {form.SortCode}-{form.AccountNumber}";
-                if (string.IsNullOrWhiteSpace(form.Name) || string.IsNullOrWhiteSpace(form.SortCode)
-                    || string.IsNullOrWhiteSpace(form.AccountNumber))
+                var cop = await _cj.CheckCopAsync(new CopCheckRequest
                 {
-                    result = "invalid";
-                    detail = "Name, sort code and account number are required for Confirmation of Payee.";
-                }
-                else
-                {
-                    result = "match";
-                    detail = $"Confirmation of Payee: name matches the account holder for {form.SortCode}-{form.AccountNumber}.";
-                }
+                    Name = form.Name ?? "",
+                    SortCode = form.SortCode ?? "",
+                    AccountNumber = form.AccountNumber ?? "",
+                    AccountType = "personal"
+                });
+                result = cop.Result;
+                detail = $"CoP result: {cop.Result}" +
+                         (cop.MatchedName is null ? "" : $" (matched: {cop.MatchedName})") +
+                         " · POST /v7/gate/checkRequisite/cop";
                 break;
 
             case "iban":
                 input = form.Iban ?? "";
-                if (string.IsNullOrWhiteSpace(form.Iban) || form.Iban.Length < 15)
-                {
-                    result = "invalid";
-                    detail = "IBAN is invalid or too short.";
-                }
-                else
-                {
-                    result = "reachable";
-                    detail = $"SEPA reachability confirmed for {form.Iban} (GET /v7/gate/checkRequisite/bankTransfer/eu/iban/{{iban}}).";
-                }
+                var ib = await _cj.CheckIbanAsync(form.Iban ?? "");
+                result = ib.Result;
+                detail = $"IBAN result: {ib.Result}" +
+                         (ib.BankName is null ? "" : $" · {ib.BankName} ({ib.Bic})") +
+                         " · GET /v7/gate/checkRequisite/bankTransfer/eu/iban/{iban}";
                 break;
 
             default:
@@ -79,19 +83,20 @@ public class ComplianceController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public IActionResult Approve(string clientOrder)
+    public async Task<IActionResult> Approve(string clientOrder)
     {
         var rec = _store.GetPayout(clientOrder);
         if (rec is null) return NotFound();
-        _store.UpdatePayoutStatus(clientOrder, "completed", "settled", "approved");
+        var resp = await _cj.TransactionActionAsync("approve", new TransactionActionRequest { ClientOrder = clientOrder });
+        _store.UpdatePayoutStatus(clientOrder, resp.Status, resp.SubStatuses.OperStatus, resp.SubStatuses.ComplianceStatus);
         _store.AddEvent(new WebhookEvent
         {
             Type = "transactionAction.approve",
             ClientOrder = clientOrder,
             OrderReference = rec.OrderReference,
-            Status = "completed",
-            OperStatus = "settled",
-            ComplianceStatus = "approved",
+            Status = resp.Status,
+            OperStatus = resp.SubStatuses.OperStatus,
+            ComplianceStatus = resp.SubStatuses.ComplianceStatus,
             Currency = rec.Currency,
             Amount = rec.Amount,
             Payload = "POST /v7/gate/transactionAction/approve"
@@ -101,19 +106,20 @@ public class ComplianceController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public IActionResult Cancel(string clientOrder)
+    public async Task<IActionResult> Cancel(string clientOrder)
     {
         var rec = _store.GetPayout(clientOrder);
         if (rec is null) return NotFound();
-        _store.UpdatePayoutStatus(clientOrder, "failed", "declined", "declined");
+        var resp = await _cj.TransactionActionAsync("cancel", new TransactionActionRequest { ClientOrder = clientOrder });
+        _store.UpdatePayoutStatus(clientOrder, resp.Status, resp.SubStatuses.OperStatus, resp.SubStatuses.ComplianceStatus);
         _store.AddEvent(new WebhookEvent
         {
             Type = "transactionAction.cancel",
             ClientOrder = clientOrder,
             OrderReference = rec.OrderReference,
-            Status = "failed",
-            OperStatus = "declined",
-            ComplianceStatus = "declined",
+            Status = resp.Status,
+            OperStatus = resp.SubStatuses.OperStatus,
+            ComplianceStatus = resp.SubStatuses.ComplianceStatus,
             Currency = rec.Currency,
             Amount = rec.Amount,
             Payload = "POST /v7/gate/transactionAction/cancel"

@@ -5,45 +5,67 @@
 
 <cj-feature feature-key="cardPayin"></cj-feature>
 
+<partial name="_PageBack" view-data='new ViewDataDictionary(ViewData) {
+    { "BackController", "Payin" },
+    { "BackAction", "CardList" },
+    { "BackLabel", "Back to Card invoices" }
+}' />
+
 <form asp-action="Card" method="post">
     @Html.AntiForgeryToken()
+    <partial name="_CjValidationSummary" />
+
     <div class="card">
         <div class="card-header">Card invoice <span class="cj-section-hint">POST /v7/gate/invoice/creditCard</span></div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label asp-for="PayerName" class="form-label"></label>
+                    <cj-label asp-for="PayerName"></cj-label>
                     <input asp-for="PayerName" class="form-control" placeholder="John Doe" />
                     <cj-help for-key="cardPayin.payerName"></cj-help>
+                    <span asp-validation-for="PayerName" class="text-danger small"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="PayerEmail" class="form-label"></label>
+                    <cj-label asp-for="PayerEmail"></cj-label>
                     <input asp-for="PayerEmail" class="form-control" placeholder="payer@example.com" />
                     <cj-help for-key="cardPayin.payerEmail"></cj-help>
+                    <span asp-validation-for="PayerEmail" class="text-danger small"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="ProductName" class="form-label"></label>
+                    <cj-label asp-for="ProductName"></cj-label>
                     <input asp-for="ProductName" class="form-control" />
                     <cj-help for-key="cardPayin.productName"></cj-help>
+                    <span asp-validation-for="ProductName" class="text-danger small"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="SiteAddress" class="form-label"></label>
+                    <cj-label asp-for="SiteAddress"></cj-label>
                     <input asp-for="SiteAddress" class="form-control" />
                     <cj-help for-key="cardPayin.siteAddress"></cj-help>
+                    <span asp-validation-for="SiteAddress" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <cj-label asp-for="SuccessUrl"></cj-label>
+                    <input asp-for="SuccessUrl" class="form-control" placeholder="https://...success" />
+                    <span asp-validation-for="SuccessUrl" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <cj-label asp-for="FailUrl"></cj-label>
+                    <input asp-for="FailUrl" class="form-control" placeholder="https://...fail" />
+                    <span asp-validation-for="FailUrl" class="text-danger small"></span>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="Currency" class="form-label"></label>
+                    <cj-label asp-for="Currency"></cj-label>
                     <cj-lookup asp-for="Currency" kind="currency" placeholder="Search currency..."></cj-lookup>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="Amount" class="form-label"></label>
+                    <cj-label asp-for="Amount"></cj-label>
                     <input asp-for="Amount" class="form-control" />
+                    <span asp-validation-for="Amount" class="text-danger small"></span>
                 </div>
             </div>
         </div>
     </div>
+
     <button type="submit" class="btn btn-primary">Create card invoice</button>
     <a class="btn btn-link" asp-action="CardList">Cancel</a>
 </form>
-
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }

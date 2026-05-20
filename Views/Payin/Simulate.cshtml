@@ -7,14 +7,22 @@
 
 <cj-feature feature-key="payinSimulate"></cj-feature>
 
+<partial name="_PageBack" view-data='new ViewDataDictionary(ViewData) {
+    { "BackController", "Payin" },
+    { "BackAction", "Index" },
+    { "BackLabel", "Back to Pay-in events" }
+}' />
+
 <form asp-action="Simulate" method="post">
     @Html.AntiForgeryToken()
+    <partial name="_CjValidationSummary" />
+
     <div class="card">
         <div class="card-header">Simulated payinNotification</div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label asp-for="ClientOrder" class="form-label">Virtual IBAN</label>
+                    <cj-label asp-for="ClientOrder" text="Virtual IBAN"></cj-label>
                     <select asp-for="ClientOrder" class="form-select">
                         @if (!ibans.Any())
                         {
@@ -22,42 +30,48 @@
                         }
                         @foreach (var i in ibans)
                         {
-                            <option value="@i.ClientOrder">@i.Iban — @i.CustomerName</option>
+                            <option value="@i.ClientOrder">@i.Iban &mdash; @i.CustomerName</option>
                         }
                     </select>
                     <cj-help for-key="payin.clientOrder"></cj-help>
+                    <span asp-validation-for="ClientOrder" class="text-danger small"></span>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="Currency" class="form-label"></label>
+                    <cj-label asp-for="Currency"></cj-label>
                     <cj-lookup asp-for="Currency" kind="currency" placeholder="Search currency..."></cj-lookup>
                     <cj-help for-key="payin.currency"></cj-help>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="Amount" class="form-label"></label>
+                    <cj-label asp-for="Amount"></cj-label>
                     <input asp-for="Amount" class="form-control" />
                     <cj-help for-key="payin.amount"></cj-help>
+                    <span asp-validation-for="Amount" class="text-danger small"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="PayerName" class="form-label"></label>
+                    <cj-label asp-for="PayerName"></cj-label>
                     <input asp-for="PayerName" class="form-control" />
                     <cj-help for-key="payin.payerName"></cj-help>
                 </div>
                 <div class="col-md-2">
-                    <label asp-for="Status" class="form-label"></label>
+                    <cj-label asp-for="Status"></cj-label>
                     <cj-lookup asp-for="Status" kind="status"></cj-lookup>
                     <cj-help for-key="payin.status"></cj-help>
                 </div>
                 <div class="col-md-2">
-                    <label asp-for="OperStatus" class="form-label">Oper status</label>
+                    <cj-label asp-for="OperStatus"></cj-label>
                     <cj-lookup asp-for="OperStatus" kind="operStatus"></cj-lookup>
                     <cj-help for-key="payin.operStatus"></cj-help>
                 </div>
                 <div class="col-md-2">
-                    <label asp-for="ComplianceStatus" class="form-label">Compliance</label>
+                    <cj-label asp-for="ComplianceStatus"></cj-label>
                     <cj-lookup asp-for="ComplianceStatus" kind="complianceStatus"></cj-lookup>
                     <cj-help for-key="payin.complianceStatus"></cj-help>
                 </div>
             </div>
+            <p class="text-muted small mt-3 mb-0">
+                Note: PoC simulation only. Real bank pay-ins arrive passively via webhook &mdash;
+                Clear Junction has no <code>payin</code> create endpoint.
+            </p>
         </div>
     </div>
 

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using BankTransferMVC.Integrations.ClearJunction;
 using BankTransferMVC.Integrations.ClearJunction.Models;
 using BankTransferMVC.Models;
 using BankTransferMVC.Services;
@@ -9,10 +10,12 @@ namespace BankTransferMVC.Controllers;
 public class PayinController : Controller
 {
     private readonly ITransferStore _store;
+    private readonly IClearJunctionClient _cj;
 
-    public PayinController(ITransferStore store)
+    public PayinController(ITransferStore store, IClearJunctionClient cj)
     {
         _store = store;
+        _cj = cj;
     }
 
     public IActionResult Index()
@@ -26,25 +29,48 @@ public class PayinController : Controller
     public IActionResult Card() => View(new CardPayinViewModel());
 
     [HttpPost, ValidateAntiForgeryToken]
-    public IActionResult Card(CardPayinViewModel form)
+    public async Task<IActionResult> Card(CardPayinViewModel form)
     {
         if (!ModelState.IsValid) return View(form);
 
         var clientOrder = $"CARD-{DateTime.UtcNow:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
+
+        var resp = await _cj.CreateCardPayinAsync(new CardPayinRequest
+        {
+            ClientOrder = clientOrder,
+            Currency = form.Currency,
+            Amount = form.Amount,
+            ProductName = form.ProductName,
+            SiteAddress = form.SiteAddress,
+            SuccessUrl = form.SuccessUrl ?? "",
+            FailUrl = form.FailUrl ?? "",
+            Payer = new CjEntity
+            {
+                Individual = new CjIndividual
+                {
+                    FirstName = form.PayerName.Split(' ').FirstOrDefault() ?? "",
+                    LastName = form.PayerName.Contains(' ') ? form.PayerName.Split(' ', 2)[1] : "",
+                    Email = form.PayerEmail ?? "",
+                    BirthDate = "1990-01-01",
+                    Address = new CjAddress { Country = "GB" }
+                }
+            }
+        });
+
         var rec = new CardPayinRecord
         {
             ClientOrder = clientOrder,
-            OrderReference = Guid.NewGuid().ToString(),
+            OrderReference = resp.OrderReference,
             PayerName = form.PayerName,
-            PayerEmail = form.PayerEmail,
+            PayerEmail = form.PayerEmail ?? "",
             ProductName = form.ProductName,
             SiteAddress = form.SiteAddress,
             Currency = form.Currency,
             Amount = form.Amount,
-            Status = "pending",
-            OperStatus = "pending",
-            ComplianceStatus = "pending",
-            RedirectUrl = $"https://sandbox.clearjunction.com/pay/{clientOrder}"
+            Status = resp.Status,
+            OperStatus = resp.SubStatuses.OperStatus,
+            ComplianceStatus = resp.SubStatuses.ComplianceStatus,
+            RedirectUrl = resp.RedirectUrl
         };
         _store.AddCardPayin(rec);
 
@@ -53,9 +79,9 @@ public class PayinController : Controller
             Type = "invoice.creditCard",
             ClientOrder = clientOrder,
             OrderReference = rec.OrderReference,
-            Status = "pending",
-            OperStatus = "pending",
-            ComplianceStatus = "pending",
+            Status = rec.Status,
+            OperStatus = rec.OperStatus,
+            ComplianceStatus = rec.ComplianceStatus,
             Currency = form.Currency,
             Amount = form.Amount,
             Payload = $"POST /v7/gate/invoice/creditCard — redirect={rec.RedirectUrl}"
@@ -80,6 +106,11 @@ public class PayinController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public IActionResult Simulate(SimulatePayinViewModel form)
     {
+        if (!ModelState.IsValid)
+        {
+            ViewBag.Ibans = _store.ListIbans();
+            return View(form);
+        }
         var iban = _store.GetIban(form.ClientOrder);
         var orderRef = iban?.OrderReference ?? Guid.NewGuid().ToString();
 

@@ -1,0 +1,50 @@
+@*
+    Individual entity block — visible when @Model.EntityType == "individual".
+    Use inside a wrapper that toggles visibility:
+        <div data-cj-when="@nameOf(Payee.EntityType)=individual">
+            <partial name="_CjIndividual" for="Payee" />
+        </div>
+
+    The "Place of birth", "Country of birth", and tax fields are mandatory only on SWIFT corridors;
+    parent IValidatableObject enforces this — surface as conditional in the help text.
+*@
+@model BankTransferMVC.Models.CjPartyViewModel
+<div class="row g-3">
+    <div class="col-md-4">
+        <cj-label asp-for="FirstName"></cj-label>
+        <input asp-for="FirstName" class="form-control" placeholder="Julie" />
+        <span asp-validation-for="FirstName" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <cj-label asp-for="LastName"></cj-label>
+        <input asp-for="LastName" class="form-control" placeholder="Peterson" />
+        <span asp-validation-for="LastName" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <cj-label asp-for="BirthDate"></cj-label>
+        <input asp-for="BirthDate" class="form-control" />
+        <span asp-validation-for="BirthDate" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <cj-label asp-for="Email"></cj-label>
+        <input asp-for="Email" class="form-control" placeholder="julie@example.com" />
+        <span asp-validation-for="Email" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <cj-label asp-for="BirthPlace"></cj-label>
+        <input asp-for="BirthPlace" class="form-control" placeholder="London" />
+        <p class="form-text cj-scope small mb-0">Required for SWIFT corridors.</p>
+    </div>
+    <div class="col-md-4">
+        <cj-label asp-for="BirthCountry"></cj-label>
+        <cj-lookup asp-for="BirthCountry" kind="country" remote="true" optional="true" placeholder="Search country..."></cj-lookup>
+    </div>
+    <div class="col-md-4">
+        <cj-label asp-for="TaxNumber"></cj-label>
+        <input asp-for="TaxNumber" class="form-control" placeholder="GB-123456" />
+    </div>
+    <div class="col-md-4">
+        <cj-label asp-for="TaxCountry"></cj-label>
+        <cj-lookup asp-for="TaxCountry" kind="country" remote="true" optional="true" placeholder="Search country..."></cj-lookup>
+    </div>
+</div>

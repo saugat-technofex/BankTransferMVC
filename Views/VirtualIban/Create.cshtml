@@ -5,23 +5,22 @@
 
 <cj-feature feature-key="virtualIbanCreate"></cj-feature>
 
+<partial name="_PageBack" view-data='new ViewDataDictionary(ViewData) {
+    { "BackController", "VirtualIban" },
+    { "BackAction", "Index" },
+    { "BackLabel", "Back to Virtual IBANs" }
+}' />
+
 <form asp-action="Create" method="post">
     @Html.AntiForgeryToken()
+    <partial name="_CjValidationSummary" />
+
     <div class="card">
-        <div class="card-header">
-            Customer
-            <span class="cj-section-hint">Maps to registrant in CJ API</span>
-        </div>
+        <div class="card-header">Registrant <span class="cj-section-hint">registrant entity (POST /v7/gate/allocate/v3/create/iban)</span></div>
         <div class="card-body">
-            <div class="row g-3">
+            <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label asp-for="CustomerName" class="form-label"></label>
-                    <input asp-for="CustomerName" class="form-control" placeholder="Julie Peterson" />
-                    <cj-help for-key="iban.customerName"></cj-help>
-                    <span asp-validation-for="CustomerName" class="text-danger small"></span>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="ClientCustomerId" class="form-label"></label>
+                    <cj-label asp-for="ClientCustomerId"></cj-label>
                     <partial name="_AutoCustomerId" view-data='new ViewDataDictionary(ViewData) {
                         ["AspFor"] = "ClientCustomerId",
                         ["CurrentValue"] = Model.ClientCustomerId,
@@ -31,46 +30,27 @@
                     }' />
                     <span asp-validation-for="ClientCustomerId" class="text-danger small"></span>
                 </div>
-                <div class="col-md-6">
-                    <label asp-for="Email" class="form-label"></label>
-                    <input asp-for="Email" class="form-control" placeholder="customer@example.com" />
-                    <cj-help for-key="iban.email"></cj-help>
-                    <span asp-validation-for="Email" class="text-danger small"></span>
-                </div>
-                <div class="col-md-3">
-                    <label asp-for="BirthDate" class="form-label"></label>
-                    <input asp-for="BirthDate" class="form-control" />
-                    <cj-help for-key="iban.birthDate"></cj-help>
-                </div>
-                <div class="col-md-3">
-                    <label asp-for="Country" class="form-label"></label>
-                    <cj-lookup asp-for="Country" kind="country" remote="true" placeholder="Search country..."></cj-lookup>
-                    <cj-help for-key="iban.country"></cj-help>
-                </div>
+            </div>
+
+            <label class="form-label">Entity type</label>
+            <div class="cj-radio-group mb-2">
+                <label><input type="radio" asp-for="Registrant.EntityType" value="individual" /> Individual</label>
+                <label><input type="radio" asp-for="Registrant.EntityType" value="corporate" /> Corporate</label>
+            </div>
+
+            <div data-cj-when="Registrant.EntityType=individual" class="cj-entity-block">
+                <partial name="_CjIndividual" for="Registrant" />
+            </div>
+            <div data-cj-when="Registrant.EntityType=corporate" class="cj-entity-block cj-block-corporate">
+                <partial name="_CjCorporate" for="Registrant" />
             </div>
         </div>
     </div>
 
     <div class="card">
-        <div class="card-header">Address <span class="cj-section-hint">registrant.individual.address</span></div>
+        <div class="card-header">Registrant address <span class="cj-section-hint">registrant.{individual|corporate}.address</span></div>
         <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-5">
-                    <label asp-for="Street" class="form-label"></label>
-                    <input asp-for="Street" class="form-control" placeholder="12 Tourin" />
-                    <cj-help for-key="iban.street"></cj-help>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="City" class="form-label"></label>
-                    <input asp-for="City" class="form-control" placeholder="Rome" />
-                    <cj-help for-key="iban.city"></cj-help>
-                </div>
-                <div class="col-md-3">
-                    <label asp-for="Zip" class="form-label"></label>
-                    <input asp-for="Zip" class="form-control" placeholder="123455" />
-                    <cj-help for-key="iban.zip"></cj-help>
-                </div>
-            </div>
+            <partial name="_CjAddress" for="Registrant" />
         </div>
     </div>
 
@@ -79,12 +59,12 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-4">
-                    <label asp-for="IbanCountry" class="form-label"></label>
+                    <cj-label asp-for="IbanCountry"></cj-label>
                     <cj-lookup asp-for="IbanCountry" kind="country" remote="true" placeholder="Search IBAN country..."></cj-lookup>
                     <cj-help for-key="iban.ibanCountry"></cj-help>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="IbansGroup" class="form-label"></label>
+                    <cj-label asp-for="IbansGroup"></cj-label>
                     <cj-lookup asp-for="IbansGroup" kind="ibansGroup" placeholder="Select IBAN pool..."></cj-lookup>
                     <cj-help for-key="iban.ibansGroup"></cj-help>
                 </div>
@@ -97,7 +77,3 @@
         <a class="btn btn-link" asp-action="Index">Cancel</a>
     </div>
 </form>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

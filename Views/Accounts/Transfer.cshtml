@@ -7,43 +7,57 @@
 
 <cj-feature feature-key="walletTransfer"></cj-feature>
 
+<partial name="_PageBack" view-data='new ViewDataDictionary(ViewData) {
+    { "BackController", "Accounts" },
+    { "BackAction", "Index" },
+    { "BackLabel", "Back to Wallets" }
+}' />
+
 <form asp-action="Transfer" method="post">
     @Html.AntiForgeryToken()
+    <partial name="_CjValidationSummary" />
+
     <div class="card">
         <div class="card-header">Internal transfer <span class="cj-section-hint">POST /v7/gate/wallets/transfer</span></div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-5">
-                    <label asp-for="FromWalletUuid" class="form-label"></label>
-                    <select asp-for="FromWalletUuid" class="form-select">
+                    <cj-label asp-for="FromWalletUuid"></cj-label>
+                    <select asp-for="FromWalletUuid" class="form-select" required>
+                        <option value="">-- select source wallet --</option>
                         @foreach (var w in wallets)
                         {
                             <option value="@w.WalletUuid">@w.Name (@w.Currency @w.Balance.ToString("N2"))</option>
                         }
                     </select>
                     <cj-help for-key="walletTransfer.from"></cj-help>
+                    <span asp-validation-for="FromWalletUuid" class="text-danger small"></span>
                 </div>
                 <div class="col-md-5">
-                    <label asp-for="ToWalletUuid" class="form-label"></label>
-                    <select asp-for="ToWalletUuid" class="form-select">
+                    <cj-label asp-for="ToWalletUuid"></cj-label>
+                    <select asp-for="ToWalletUuid" class="form-select" required>
+                        <option value="">-- select destination wallet --</option>
                         @foreach (var w in wallets)
                         {
                             <option value="@w.WalletUuid">@w.Name (@w.Currency @w.Balance.ToString("N2"))</option>
                         }
                     </select>
                     <cj-help for-key="walletTransfer.to"></cj-help>
+                    <span asp-validation-for="ToWalletUuid" class="text-danger small"></span>
                 </div>
                 <div class="col-md-2">
-                    <label asp-for="Currency" class="form-label"></label>
+                    <cj-label asp-for="Currency"></cj-label>
                     <cj-lookup asp-for="Currency" kind="currency" placeholder="Currency..."></cj-lookup>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="Amount" class="form-label"></label>
+                    <cj-label asp-for="Amount"></cj-label>
                     <input asp-for="Amount" class="form-control" />
+                    <span asp-validation-for="Amount" class="text-danger small"></span>
                 </div>
                 <div class="col-md-9">
-                    <label asp-for="Reference" class="form-label"></label>
+                    <cj-label asp-for="Reference"></cj-label>
                     <input asp-for="Reference" class="form-control" />
+                    <span asp-validation-for="Reference" class="text-danger small"></span>
                 </div>
             </div>
         </div>
@@ -51,5 +65,3 @@
     <button type="submit" class="btn btn-primary" disabled="@(!wallets.Any())">Transfer</button>
     <a class="btn btn-link" asp-action="Index">Cancel</a>
 </form>
-
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }

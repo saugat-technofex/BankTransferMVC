@@ -1,0 +1,13 @@
+@{
+    var controller = ViewData["BackController"] as string
+        ?? ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewData["BackAction"] as string ?? "Index";
+    var label = ViewData["BackLabel"] as string ?? "Back";
+}
+<nav class="cj-page-back mb-3" aria-label="Back navigation">
+    <a class="btn btn-sm btn-outline-secondary"
+       asp-controller="@controller"
+       asp-action="@action">
+        <span aria-hidden="true">&larr;</span> @label
+    </a>
+</nav>

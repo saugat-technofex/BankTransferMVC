@@ -11,11 +11,13 @@ public class HomeController : Controller
 {
     private readonly ITransferStore _store;
     private readonly ClearJunctionOptions _options;
+    private readonly ICjModeService _mode;
 
-    public HomeController(ITransferStore store, IOptions<ClearJunctionOptions> options)
+    public HomeController(ITransferStore store, IOptions<ClearJunctionOptions> options, ICjModeService mode)
     {
         _store = store;
         _options = options.Value;
+        _mode = mode;
     }
 
     public IActionResult Index()
@@ -28,7 +30,7 @@ public class HomeController : Controller
             PayoutCount = payouts.Count,
             FxCount = _store.ListFx().Count,
             EventCount = events.Count,
-            SimulationMode = _options.SimulationMode,
+            SimulationMode = _mode.IsSimulation,
             BaseUrl = _options.BaseUrl,
             RecentPayouts = payouts.Take(5).ToList(),
             RecentEvents = events.Take(5).ToList()

@@ -9,24 +9,28 @@
     <div class="col-lg-7">
         <form asp-action="Quote" method="post">
             @Html.AntiForgeryToken()
+            <partial name="_CjValidationSummary" />
             <div class="card">
                 <div class="card-header">Request a quote</div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label asp-for="SellCurrency" class="form-label">Sell</label>
+                            <cj-label asp-for="SellCurrency" text="Sell"></cj-label>
                             <cj-lookup asp-for="SellCurrency" kind="currency" placeholder="Search sell currency..."></cj-lookup>
                             <cj-help for-key="fx.sellCurrency"></cj-help>
+                            <span asp-validation-for="SellCurrency" class="text-danger small"></span>
                         </div>
                         <div class="col-md-4">
-                            <label asp-for="BuyCurrency" class="form-label">Buy</label>
+                            <cj-label asp-for="BuyCurrency" text="Buy"></cj-label>
                             <cj-lookup asp-for="BuyCurrency" kind="currency" placeholder="Search buy currency..."></cj-lookup>
                             <cj-help for-key="fx.buyCurrency"></cj-help>
+                            <span asp-validation-for="BuyCurrency" class="text-danger small"></span>
                         </div>
                         <div class="col-md-4">
-                            <label asp-for="SellAmount" class="form-label">Sell amount</label>
+                            <cj-label asp-for="SellAmount" text="Sell amount"></cj-label>
                             <input asp-for="SellAmount" class="form-control" />
                             <cj-help for-key="fx.sellAmount"></cj-help>
+                            <span asp-validation-for="SellAmount" class="text-danger small"></span>
                         </div>
                     </div>
                 </div>
@@ -47,7 +51,7 @@
                 <input type="hidden" asp-for="ExpirationTimestamp" />
 
                 <div class="card">
-                    <div class="card-header">Quote — execute before expiry</div>
+                    <div class="card-header">Quote &mdash; execute before expiry</div>
                     <div class="card-body">
                         <dl class="row mb-2">
                             <dt class="col-sm-4">Rate</dt>
@@ -79,8 +83,8 @@
             <div class="card-header">When do I use FX?</div>
             <div class="card-body">
                 <ul class="small text-muted mb-0">
-                    <li>You collected funds in EUR via SEPA but need to pay out USD via SWIFT.</li>
-                    <li>You received an inbound SWIFT in USD and need GBP for a Faster Payments payout.</li>
+                    <li>Collected EUR via SEPA but need to pay out USD via SWIFT.</li>
+                    <li>Received an inbound SWIFT in USD and need GBP for a Faster Payments payout.</li>
                     <li>Convert between any two currencies held in your Clear Junction wallet.</li>
                 </ul>
             </div>
@@ -88,7 +92,7 @@
         <div class="card">
             <div class="card-header">Limits (typical)</div>
             <div class="card-body small text-muted">
-                Min ≈ 500 EUR · Max ≈ 200,000 EUR per trade · Daily ≈ 1,000,000 EUR · ~06:00–15:00 UK.
+                Min &approx; 500 EUR &middot; Max &approx; 200,000 EUR per trade &middot; Daily &approx; 1,000,000 EUR &middot; ~06:00&ndash;15:00 UK.
             </div>
         </div>
     </div>

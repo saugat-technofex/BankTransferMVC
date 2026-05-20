@@ -1,0 +1,20 @@
+@*
+    Friendly form-wide validation summary. Drop in just inside the <form>:
+        <partial name="_CjValidationSummary" />
+*@
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="cj-validation-summary" role="alert">
+        <strong>Please fix the following:</strong>
+        <ul class="mb-0 small">
+            @foreach (var entry in ViewData.ModelState)
+            {
+                foreach (var err in entry.Value!.Errors)
+                {
+                    var who = string.IsNullOrEmpty(entry.Key) ? "Form" : entry.Key;
+                    <li><code>@who</code> &mdash; @err.ErrorMessage</li>
+                }
+            }
+        </ul>
+    </div>
+}

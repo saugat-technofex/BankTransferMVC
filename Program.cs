@@ -12,8 +12,19 @@ builder.Services.AddSingleton<IClearJunctionSignatureService, ClearJunctionSigna
 builder.Services.AddSingleton<ITransferStore, InMemoryTransferStore>();
 builder.Services.AddSingleton<IClientCustomerIdGenerator, ClientCustomerIdGenerator>();
 builder.Services.AddSingleton<ICjReferenceCatalog, CjReferenceCatalog>();
+builder.Services.AddSingleton<ICjFieldSchema, CjFieldSchema>();
+
+builder.Services.AddSingleton<ICjModeService, CjModeService>();
+builder.Services.AddSingleton<ICjSimulator, CjSimulator>();
+builder.Services.AddSingleton<ICjCallLog, CjCallLog>();
 
 builder.Services.AddHttpClient<IClearJunctionClient, ClearJunctionClient>();
+builder.Services.AddHttpClient("cj-webhook-self", c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(5);
+});
+
+builder.Services.AddHostedService<CjLifecycleWorker>();
 
 var app = builder.Build();
 

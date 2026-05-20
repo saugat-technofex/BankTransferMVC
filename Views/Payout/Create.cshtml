@@ -5,58 +5,72 @@
 
 <cj-feature feature-key="payoutCreate"></cj-feature>
 
+<partial name="_PageBack" view-data='new ViewDataDictionary(ViewData) {
+    { "BackController", "Payout" },
+    { "BackAction", "Index" },
+    { "BackLabel", "Back to Payouts" }
+}' />
+
 <form asp-action="Create" method="post" id="payoutForm">
     @Html.AntiForgeryToken()
+    <partial name="_CjValidationSummary" />
+
     <div class="card">
         <div class="card-header">Payment <span class="cj-section-hint">clientOrder generated on submit</span></div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-4">
-                    <label asp-for="Rail" class="form-label"></label>
+                    <cj-label asp-for="Rail"></cj-label>
                     <cj-lookup asp-for="Rail" kind="rail" id="railSelect"></cj-lookup>
                     <cj-help for-key="payout.rail"></cj-help>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="Currency" class="form-label"></label>
+                    <cj-label asp-for="Currency"></cj-label>
                     <cj-lookup asp-for="Currency" kind="currency" id="currencySelect"></cj-lookup>
                     <cj-help for-key="payout.currency"></cj-help>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="Amount" class="form-label"></label>
+                    <cj-label asp-for="Amount"></cj-label>
                     <input asp-for="Amount" class="form-control" />
                     <cj-help for-key="payout.amount"></cj-help>
                     <span asp-validation-for="Amount" class="text-danger small"></span>
                 </div>
-                <div class="col-md-3">
-                    <label asp-for="PurposeCode" class="form-label">Purpose code</label>
-                    <cj-lookup asp-for="PurposeCode" kind="purposeCode" placeholder="Search purpose code..."></cj-lookup>
-                    <cj-help for-key="payout.purposeCode"></cj-help>
-                </div>
-                <div class="col-md-3">
-                    <label asp-for="PurposeCategory" class="form-label"></label>
-                    <cj-lookup asp-for="PurposeCategory" kind="purposeCategory" placeholder="Search category..."></cj-lookup>
-                    <cj-help for-key="payout.purposeCategory"></cj-help>
+                <div class="col-md-2">
+                    <cj-label asp-for="PostbackUrl"></cj-label>
+                    <input asp-for="PostbackUrl" class="form-control" placeholder="optional" />
+                    <span asp-validation-for="PostbackUrl" class="text-danger small"></span>
                 </div>
                 <div class="col-md-12">
-                    <label asp-for="Description" class="form-label"></label>
+                    <cj-label asp-for="Description"></cj-label>
                     <input asp-for="Description" class="form-control" placeholder="Invoice INV-1001" />
                     <cj-help for-key="payout.description"></cj-help>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <cj-label asp-for="PurposeCode"></cj-label>
+                    <cj-lookup asp-for="PurposeCode" kind="purposeCode" optional="true" placeholder="Search purpose code..."></cj-lookup>
+                    <cj-help for-key="payout.purposeCode"></cj-help>
+                </div>
+                <div class="col-md-6">
+                    <cj-label asp-for="PurposeCategory"></cj-label>
+                    <cj-lookup asp-for="PurposeCategory" kind="purposeCategory" optional="true" placeholder="Search category..."></cj-lookup>
+                    <cj-help for-key="payout.purposeCategory"></cj-help>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="card">
-        <div class="card-header">Payer (debit side)</div>
+        <div class="card-header">Payer (debit side) <span class="cj-section-hint">payer + payerRequisite</span></div>
         <div class="card-body">
-            <div class="row g-3">
+            <div class="row g-3 mb-3">
                 <div class="col-md-4">
-                    <label asp-for="PayerWalletUuid" class="form-label"></label>
+                    <cj-label asp-for="PayerWalletUuid"></cj-label>
                     <input asp-for="PayerWalletUuid" class="form-control" placeholder="optional" />
                     <cj-help for-key="payout.payerWalletUuid"></cj-help>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="PayerClientCustomerId" class="form-label"></label>
+                    <cj-label asp-for="PayerClientCustomerId"></cj-label>
                     <partial name="_AutoCustomerId" view-data='new ViewDataDictionary(ViewData) {
                         ["AspFor"] = "PayerClientCustomerId",
                         ["CurrentValue"] = Model.PayerClientCustomerId,
@@ -67,10 +81,28 @@
                     }' />
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="PayerIban" class="form-label"></label>
+                    <cj-label asp-for="PayerIban"></cj-label>
                     <input asp-for="PayerIban" class="form-control" placeholder="GBXXCLJU…" />
                     <cj-help for-key="payout.payerIban"></cj-help>
                 </div>
+            </div>
+
+            <label class="form-label">Entity type</label>
+            <div class="cj-radio-group mb-2">
+                <label><input type="radio" asp-for="Payer.EntityType" value="individual" /> Individual</label>
+                <label><input type="radio" asp-for="Payer.EntityType" value="corporate" /> Corporate</label>
+            </div>
+
+            <div data-cj-when="Payer.EntityType=individual" class="cj-entity-block">
+                <partial name="_CjIndividual" for="Payer" />
+            </div>
+            <div data-cj-when="Payer.EntityType=corporate" class="cj-entity-block cj-block-corporate">
+                <partial name="_CjCorporate" for="Payer" />
+            </div>
+
+            <div class="mt-3">
+                <h6 class="text-muted small mb-2">Payer address</h6>
+                <partial name="_CjAddress" for="Payer" />
             </div>
         </div>
     </div>
@@ -78,70 +110,102 @@
     <div class="card">
         <div class="card-header">Beneficiary <span class="cj-section-hint">payee + payeeRequisite (rail-specific)</span></div>
         <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label asp-for="PayeeName" class="form-label"></label>
-                    <input asp-for="PayeeName" class="form-control" placeholder="Julie Peterson" />
-                    <cj-help for-key="payout.payeeName"></cj-help>
-                    <span asp-validation-for="PayeeName" class="text-danger small"></span>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="PayeeEmail" class="form-label"></label>
-                    <input asp-for="PayeeEmail" class="form-control" />
-                    <cj-help for-key="payout.payeeEmail"></cj-help>
-                </div>
-                <div class="col-md-3">
-                    <label asp-for="PayeeCountry" class="form-label"></label>
-                    <cj-lookup asp-for="PayeeCountry" kind="country" remote="true" placeholder="Search country..."></cj-lookup>
-                    <cj-help for-key="payout.payeeCountry"></cj-help>
-                </div>
+            <label class="form-label">Entity type</label>
+            <div class="cj-radio-group mb-2">
+                <label><input type="radio" asp-for="Payee.EntityType" value="individual" /> Individual</label>
+                <label><input type="radio" asp-for="Payee.EntityType" value="corporate" /> Corporate</label>
+            </div>
 
-                <div class="col-md-8 rail-field" data-rails="sepa,sepaInst,swift,internal">
-                    <label asp-for="PayeeIban" class="form-label">Payee IBAN</label>
+            <div data-cj-when="Payee.EntityType=individual" class="cj-entity-block">
+                <partial name="_CjIndividual" for="Payee" />
+            </div>
+            <div data-cj-when="Payee.EntityType=corporate" class="cj-entity-block cj-block-corporate">
+                <partial name="_CjCorporate" for="Payee" />
+            </div>
+
+            <div class="mt-3">
+                <h6 class="text-muted small mb-2">Beneficiary address</h6>
+                <partial name="_CjAddress" for="Payee" />
+            </div>
+
+            <h6 class="text-muted small mt-4 mb-2">Beneficiary bank requisite</h6>
+            <div class="row g-3">
+                <div class="col-md-8" data-cj-when="Rail=sepa,sepaInst,swift,chapsCrossScheme,internal">
+                    <cj-label asp-for="PayeeIban"></cj-label>
                     <input asp-for="PayeeIban" class="form-control" placeholder="DE89370400440532013000" />
                     <cj-help for-key="payout.payeeIban"></cj-help>
+                    <span asp-validation-for="PayeeIban" class="text-danger small"></span>
                 </div>
 
-                <div class="col-md-4 rail-field" data-rails="fps,chaps,chapsCrossScheme">
-                    <label asp-for="PayeeAccountNumber" class="form-label">Account number</label>
-                    <input asp-for="PayeeAccountNumber" class="form-control" placeholder="12345678" />
+                <div class="col-md-4" data-cj-when="Rail=fps,chaps">
+                    <cj-label asp-for="PayeeAccountNumber"></cj-label>
+                    <input asp-for="PayeeAccountNumber" class="form-control" placeholder="12345678" maxlength="8" />
                     <cj-help for-key="payout.payeeAccountNumber"></cj-help>
+                    <span asp-validation-for="PayeeAccountNumber" class="text-danger small"></span>
                 </div>
-                <div class="col-md-4 rail-field" data-rails="fps,chaps,chapsCrossScheme">
-                    <label asp-for="PayeeSortCode" class="form-label">Sort code</label>
-                    <input asp-for="PayeeSortCode" class="form-control" placeholder="000000" />
+                <div class="col-md-4" data-cj-when="Rail=fps,chaps">
+                    <cj-label asp-for="PayeeSortCode"></cj-label>
+                    <input asp-for="PayeeSortCode" class="form-control" placeholder="000000" maxlength="6" />
                     <cj-help for-key="payout.payeeSortCode"></cj-help>
+                    <span asp-validation-for="PayeeSortCode" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card cj-entity-block cj-block-swift" data-cj-when="Rail=swift">
+        <div class="card-header">SWIFT institution <span class="cj-section-hint">payeeRequisite.institution</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <cj-label asp-for="Institution.BankSwiftCode" text="Bank BIC / SWIFT"></cj-label>
+                    <input asp-for="Institution.BankSwiftCode" class="form-control" placeholder="UBSWCHZH80A" />
+                    <p class="form-text cj-scope small mb-0">Mandatory on SWIFT corridor.</p>
+                    <span asp-validation-for="Institution.BankSwiftCode" class="text-danger small"></span>
+                </div>
+                <div class="col-md-8">
+                    <cj-label asp-for="Institution.BankName" text="Bank legal name"></cj-label>
+                    <input asp-for="Institution.BankName" class="form-control" placeholder="Bank of America" />
+                    <p class="form-text cj-scope small mb-0">Mandatory on SWIFT corridor.</p>
+                    <span asp-validation-for="Institution.BankName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-3">
+                    <cj-label asp-for="Institution.Country" text="Bank country"></cj-label>
+                    <cj-lookup asp-for="Institution.Country" kind="country" remote="true" optional="true" placeholder="Search country..."></cj-lookup>
+                    <span asp-validation-for="Institution.Country" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <cj-label asp-for="Institution.City"></cj-label>
+                    <input asp-for="Institution.City" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <cj-label asp-for="Institution.Zip"></cj-label>
+                    <input asp-for="Institution.Zip" class="form-control" />
+                </div>
+                <div class="col-md-12">
+                    <cj-label asp-for="Institution.Street"></cj-label>
+                    <input asp-for="Institution.Street" class="form-control" />
                 </div>
 
-                <div class="col-md-4 rail-field" data-rails="swift">
-                    <label asp-for="PayeeBankSwift" class="form-label">Beneficiary BIC</label>
-                    <input asp-for="PayeeBankSwift" class="form-control" placeholder="BOFAUS3N" />
-                    <cj-help for-key="payout.payeeBankSwift"></cj-help>
-                </div>
-                <div class="col-md-8 rail-field" data-rails="swift">
-                    <label asp-for="PayeeBankName" class="form-label">Beneficiary bank name</label>
-                    <input asp-for="PayeeBankName" class="form-control" placeholder="Bank of America" />
-                    <cj-help for-key="payout.payeeBankName"></cj-help>
-                </div>
-                <div class="col-md-4 rail-field" data-rails="swift">
-                    <label asp-for="ClearingSystemIdCode" class="form-label">Clearing system code</label>
-                    <cj-lookup asp-for="ClearingSystemIdCode" kind="clearingSystem" optional="true" placeholder="Select clearing system..."></cj-lookup>
+                <div class="col-md-6">
+                    <cj-label asp-for="Institution.ClearingSystemIdCode"></cj-label>
+                    <cj-lookup asp-for="Institution.ClearingSystemIdCode" kind="clearingSystem" optional="true" placeholder="ABA / CHIPS / ..."></cj-lookup>
                     <cj-help for-key="payout.clearingSystemIdCode"></cj-help>
                 </div>
-                <div class="col-md-4 rail-field" data-rails="swift">
-                    <label asp-for="ClearingMemberId" class="form-label">Clearing member id</label>
-                    <input asp-for="ClearingMemberId" class="form-control" placeholder="026009593" />
+                <div class="col-md-6">
+                    <cj-label asp-for="Institution.MemberId"></cj-label>
+                    <input asp-for="Institution.MemberId" class="form-control" placeholder="026009593" />
                     <cj-help for-key="payout.clearingMemberId"></cj-help>
                 </div>
-                <div class="col-md-4 rail-field" data-rails="swift">
-                    <label asp-for="IntermediaryBankSwift" class="form-label">Intermediary BIC</label>
-                    <input asp-for="IntermediaryBankSwift" class="form-control" />
+
+                <div class="col-md-4">
+                    <cj-label asp-for="IntermediaryInstitution.BankSwiftCode" text="Intermediary BIC"></cj-label>
+                    <input asp-for="IntermediaryInstitution.BankSwiftCode" class="form-control" placeholder="optional" />
                     <cj-help for-key="payout.intermediaryBankSwift"></cj-help>
                 </div>
-                <div class="col-md-8 rail-field" data-rails="swift">
-                    <label asp-for="IntermediaryBankName" class="form-label">Intermediary bank name</label>
-                    <input asp-for="IntermediaryBankName" class="form-control" />
-                    <cj-help for-key="payout.intermediaryBankName"></cj-help>
+                <div class="col-md-8">
+                    <cj-label asp-for="IntermediaryInstitution.BankName" text="Intermediary bank name"></cj-label>
+                    <input asp-for="IntermediaryInstitution.BankName" class="form-control" placeholder="optional" />
                 </div>
             </div>
         </div>
@@ -154,28 +218,23 @@
 </form>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
     <script>
         (function () {
             var sel = document.getElementById('railSelect');
             var cur = document.getElementById('currencySelect');
             function setCurrency(code) {
-                if (cur.tomselect) cur.tomselect.setValue(code);
-                else cur.value = code;
+                if (cur && cur.tomselect) cur.tomselect.setValue(code);
+                else if (cur) cur.value = code;
             }
-            function applyRail() {
-                var rail = sel.value;
-                document.querySelectorAll('.rail-field').forEach(function (el) {
-                    var rails = (el.getAttribute('data-rails') || '').split(',');
-                    el.style.display = rails.indexOf(rail) >= 0 ? '' : 'none';
-                });
+            function applyRailDefaults() {
+                var rail = sel ? sel.value : '';
                 if (rail === 'fps' || rail === 'chaps' || rail === 'chapsCrossScheme') setCurrency('GBP');
                 else if (rail === 'sepa' || rail === 'sepaInst') setCurrency('EUR');
             }
-            sel.addEventListener('change', applyRail);
-            // Defer first apply until Tom Select is initialised so setValue works.
-            setTimeout(applyRail, 50);
+            if (sel) {
+                sel.addEventListener('change', applyRailDefaults);
+                setTimeout(applyRailDefaults, 80);
+            }
         })();
     </script>
 }
-

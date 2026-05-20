@@ -8,12 +8,13 @@
 <div class="card">
     <div class="card-header">
         Allocated virtual IBANs (@Model.Count)
-        <a class="btn btn-sm btn-primary" asp-action="Create">Allocate IBAN</a>
+        <a class="btn btn-sm btn-primary" asp-action="Create">Allocate Virtual IBAN</a>
     </div>
     <div class="card-body p-0">
         @if (!Model.Any())
         {
-            <div class="p-3 text-muted">No virtual IBANs allocated yet. Allocate one to receive inbound bank transfers.</div>
+            <div class="p-3 text-muted">No virtual IBANs allocated yet.
+                <a asp-action="Create" class="btn btn-sm btn-primary ms-2">Allocate Virtual IBAN</a></div>
         }
         else
         {

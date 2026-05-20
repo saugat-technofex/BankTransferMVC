@@ -5,20 +5,28 @@
 
 <cj-feature feature-key="accountsCreate"></cj-feature>
 
+<partial name="_PageBack" view-data='new ViewDataDictionary(ViewData) {
+    { "BackController", "Accounts" },
+    { "BackAction", "Index" },
+    { "BackLabel", "Back to Wallets" }
+}' />
+
 <form asp-action="Create" method="post">
     @Html.AntiForgeryToken()
+    <partial name="_CjValidationSummary" />
+
     <div class="card">
-        <div class="card-header">Corporate customer <span class="cj-section-hint">POST /v7/gate/wallets/corporate</span></div>
+        <div class="card-header">Wallet <span class="cj-section-hint">POST /v7/gate/wallets/corporate</span></div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label asp-for="Name" class="form-label"></label>
+                    <cj-label asp-for="Name"></cj-label>
                     <input asp-for="Name" class="form-control" placeholder="Acme Ltd" />
                     <cj-help for-key="wallet.name"></cj-help>
                     <span asp-validation-for="Name" class="text-danger small"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="ClientCustomerId" class="form-label"></label>
+                    <cj-label asp-for="ClientCustomerId"></cj-label>
                     <partial name="_AutoCustomerId" view-data='new ViewDataDictionary(ViewData) {
                         ["AspFor"] = "ClientCustomerId",
                         ["CurrentValue"] = Model.ClientCustomerId,
@@ -28,35 +36,152 @@
                     <span asp-validation-for="ClientCustomerId" class="text-danger small"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="Email" class="form-label"></label>
+                    <cj-label asp-for="Email"></cj-label>
                     <input asp-for="Email" class="form-control" placeholder="ops@acme.com" />
                     <cj-help for-key="wallet.email"></cj-help>
+                    <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="Country" class="form-label"></label>
+                    <cj-label asp-for="Country"></cj-label>
                     <cj-lookup asp-for="Country" kind="country" remote="true" placeholder="Search country..."></cj-lookup>
                     <cj-help for-key="wallet.country"></cj-help>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="Type" class="form-label"></label>
+                    <cj-label asp-for="Type"></cj-label>
                     <cj-lookup asp-for="Type" kind="walletType" placeholder="Select wallet type..."></cj-lookup>
                     <cj-help for-key="wallet.type"></cj-help>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="Currency" class="form-label"></label>
+                    <cj-label asp-for="Currency"></cj-label>
                     <cj-lookup asp-for="Currency" kind="currency" placeholder="Search currency..."></cj-lookup>
                     <cj-help for-key="wallet.currency"></cj-help>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="OpeningBalance" class="form-label"></label>
+                    <cj-label asp-for="IbanCountry"></cj-label>
+                    <cj-lookup asp-for="IbanCountry" kind="country" remote="true" placeholder="Search country..."></cj-lookup>
+                </div>
+                <div class="col-md-3">
+                    <cj-label asp-for="IbansGroup"></cj-label>
+                    <cj-lookup asp-for="IbansGroup" kind="ibansGroup"></cj-lookup>
+                </div>
+                <div class="col-md-3">
+                    <cj-label asp-for="OpeningBalance"></cj-label>
                     <input asp-for="OpeningBalance" class="form-control" />
                     <cj-help for-key="wallet.openingBalance"></cj-help>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="card">
+        <div class="card-header">Holder KYC <span class="cj-section-hint">holder.{individual|corporate} block</span></div>
+        <div class="card-body">
+            <label class="form-label">Entity type</label>
+            <div class="cj-radio-group mb-2">
+                <label><input type="radio" asp-for="Holder.EntityType" value="corporate" /> Corporate</label>
+                <label><input type="radio" asp-for="Holder.EntityType" value="individual" /> Individual</label>
+            </div>
+
+            <div data-cj-when="Holder.EntityType=corporate" class="cj-entity-block cj-block-corporate">
+                <partial name="_CjCorporate" for="Holder" />
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4">
+                        <cj-label asp-for="IndustryType"></cj-label>
+                        <input asp-for="IndustryType" class="form-control" placeholder="Financial services" />
+                    </div>
+                    <div class="col-md-4">
+                        <cj-label asp-for="ExpectedTurnover"></cj-label>
+                        <input asp-for="ExpectedTurnover" class="form-control" />
+                    </div>
+                </div>
+            </div>
+
+            <div data-cj-when="Holder.EntityType=individual" class="cj-entity-block">
+                <partial name="_CjIndividual" for="Holder" />
+            </div>
+
+            <div class="mt-3">
+                <h6 class="text-muted small mb-2">Holder address</h6>
+                <partial name="_CjAddress" for="Holder" />
+            </div>
+        </div>
+    </div>
+
+    <div class="card" data-cj-when="Holder.EntityType=corporate">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Ultimate beneficial owners <span class="cj-section-hint">holder.corporate.ultimateBeneficialOwner[]</span></span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="ubo-add">+ Add UBO</button>
+        </div>
+        <div class="card-body">
+            <div id="ubo-rows">
+                @for (int i = 0; i < Model.Ubos.Count; i++)
+                {
+                    <div class="row g-2 align-items-end mb-2 ubo-row">
+                        <div class="col-md-4">
+                            <cj-label asp-for="Ubos[i].Name"></cj-label>
+                            <input asp-for="Ubos[i].Name" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <cj-label asp-for="Ubos[i].BirthDate"></cj-label>
+                            <input asp-for="Ubos[i].BirthDate" class="form-control" />
+                        </div>
+                        <div class="col-md-2">
+                            <cj-label asp-for="Ubos[i].Country"></cj-label>
+                            <cj-lookup asp-for="Ubos[i].Country" kind="country" remote="true" optional="true" placeholder="Country..."></cj-lookup>
+                        </div>
+                        <div class="col-md-2">
+                            <cj-label asp-for="Ubos[i].OwnershipPercent" text="Ownership %"></cj-label>
+                            <input asp-for="Ubos[i].OwnershipPercent" class="form-control" />
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-sm btn-outline-danger ubo-remove" title="Remove">&times;</button>
+                        </div>
+                    </div>
+                }
+            </div>
+            @if (!Model.Ubos.Any())
+            {
+                <p class="text-muted small mb-0">No UBOs added. Click <em>+ Add UBO</em> to declare beneficial owners (CJ usually requires &gt;= 25 % shareholders).</p>
+            }
+        </div>
+    </div>
+
     <button type="submit" class="btn btn-primary">Create wallet</button>
     <a class="btn btn-link" asp-action="Index">Cancel</a>
 </form>
 
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+@section Scripts {
+    <script>
+        (function () {
+            var rows = document.getElementById('ubo-rows');
+            var add = document.getElementById('ubo-add');
+            if (!rows || !add) return;
+
+            function rowTemplate(idx) {
+                return '' +
+                    '<div class="row g-2 align-items-end mb-2 ubo-row">' +
+                    '  <div class="col-md-4"><label class="form-label">Full name</label>' +
+                    '    <input name="Ubos[' + idx + '].Name" class="form-control" /></div>' +
+                    '  <div class="col-md-3"><label class="form-label">Date of birth</label>' +
+                    '    <input name="Ubos[' + idx + '].BirthDate" type="date" class="form-control" /></div>' +
+                    '  <div class="col-md-2"><label class="form-label">Country</label>' +
+                    '    <input name="Ubos[' + idx + '].Country" class="form-control" placeholder="GB" maxlength="2" /></div>' +
+                    '  <div class="col-md-2"><label class="form-label">Ownership %</label>' +
+                    '    <input name="Ubos[' + idx + '].OwnershipPercent" type="number" min="0" max="100" step="0.1" class="form-control" /></div>' +
+                    '  <div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger ubo-remove">&times;</button></div>' +
+                    '</div>';
+            }
+
+            add.addEventListener('click', function () {
+                var idx = rows.querySelectorAll('.ubo-row').length;
+                rows.insertAdjacentHTML('beforeend', rowTemplate(idx));
+            });
+            rows.addEventListener('click', function (e) {
+                if (e.target && e.target.classList.contains('ubo-remove')) {
+                    var row = e.target.closest('.ubo-row');
+                    if (row) row.remove();
+                }
+            });
+        })();
+    </script>
+}

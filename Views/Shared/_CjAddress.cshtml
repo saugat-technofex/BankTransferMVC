@@ -1,0 +1,32 @@
+@*
+    Renders a 4-field address block (street / city / zip / country).
+    Bind via `<partial name="_CjAddress" for="Payee" />` — the partial picks up the
+    parent prefix (e.g. "Payee") from ViewData.TemplateInfo.HtmlFieldPrefix so all
+    inputs post as Payee.Street, Payee.City, etc.
+
+    The same partial drives nested addresses such as Payee.Institution.<Street> when
+    nested partials chain prefixes.
+*@
+@model BankTransferMVC.Models.CjPartyViewModel
+<div class="row g-3">
+    <div class="col-md-5">
+        <cj-label asp-for="Street"></cj-label>
+        <input asp-for="Street" class="form-control" placeholder="12 Tourin" />
+        <span asp-validation-for="Street" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <cj-label asp-for="City"></cj-label>
+        <input asp-for="City" class="form-control" placeholder="Rome" />
+        <span asp-validation-for="City" class="text-danger small"></span>
+    </div>
+    <div class="col-md-3">
+        <cj-label asp-for="Zip"></cj-label>
+        <input asp-for="Zip" class="form-control" placeholder="123455" />
+        <span asp-validation-for="Zip" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <cj-label asp-for="Country"></cj-label>
+        <cj-lookup asp-for="Country" kind="country" remote="true" optional="true" placeholder="Search country..."></cj-lookup>
+        <span asp-validation-for="Country" class="text-danger small"></span>
+    </div>
+</div>

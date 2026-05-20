@@ -1,4 +1,5 @@
 @model BankTransferMVC.Models.PayoutRecord
+@inject BankTransferMVC.Services.ICjModeService CjMode
 @{
     ViewData["Title"] = "Payout details";
     var events = (List<BankTransferMVC.Models.WebhookEvent>?)ViewBag.Events
@@ -70,11 +71,21 @@
             </div>
         </div>
 
-        <form asp-action="Refresh" method="post">
+        <form asp-action="Refresh" method="post" class="d-flex gap-2 align-items-center">
             @Html.AntiForgeryToken()
             <input type="hidden" name="clientOrder" value="@Model.ClientOrder" />
             <button type="submit" class="btn btn-outline-primary">Refresh status</button>
             <a class="btn btn-link" asp-action="Index">Back to list</a>
+            @if (CjMode.IsSimulation)
+            {
+                <span class="small text-muted ms-auto">
+                    Sim scenario: <strong>@CjMode.Simulation.Scenario</strong>
+                    @if (CjMode.Simulation.AutoAdvance)
+                    {
+                        <text>· auto-advance every @CjMode.Simulation.AutoAdvanceIntervalSeconds s</text>
+                    }
+                </span>
+            }
         </form>
     </div>
 

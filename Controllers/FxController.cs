@@ -65,6 +65,7 @@ public class FxController : Controller
             ModelState.AddModelError("", "Request a quote before executing the conversion.");
             return View(nameof(Index), form);
         }
+        if (!ModelState.IsValid) return View(nameof(Index), form);
 
         var clientOrder = $"FX-{DateTime.UtcNow:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
         var req = new FxTransferRequest

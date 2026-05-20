@@ -1,0 +1,40 @@
+@*
+    Corporate entity block — visible when @Model.EntityType == "corporate".
+    Wrap in <div data-cj-when="<prefix>.EntityType=corporate"> for client-side visibility;
+    [CjRequiredIf("EntityType","corporate")] on the sub-VM enforces server-side rules.
+
+    LEI is conditional: required on corporate payee for FPS/CHAPS/SWIFT rails — enforced by
+    the parent's IValidatableObject. Show it visually but don't add [Required] here.
+*@
+@model BankTransferMVC.Models.CjPartyViewModel
+<div class="row g-3">
+    <div class="col-md-6">
+        <cj-label asp-for="CorporateName"></cj-label>
+        <input asp-for="CorporateName" class="form-control" placeholder="Acme Ltd" />
+        <span asp-validation-for="CorporateName" class="text-danger small"></span>
+    </div>
+    <div class="col-md-3">
+        <cj-label asp-for="RegistrationNumber"></cj-label>
+        <input asp-for="RegistrationNumber" class="form-control" placeholder="12345678" />
+        <span asp-validation-for="RegistrationNumber" class="text-danger small"></span>
+    </div>
+    <div class="col-md-3">
+        <cj-label asp-for="IncorporationCountry"></cj-label>
+        <cj-lookup asp-for="IncorporationCountry" kind="country" remote="true" placeholder="Search country..."></cj-lookup>
+        <span asp-validation-for="IncorporationCountry" class="text-danger small"></span>
+    </div>
+    <div class="col-md-3">
+        <cj-label asp-for="IncorporationDate"></cj-label>
+        <input asp-for="IncorporationDate" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <cj-label asp-for="Email"></cj-label>
+        <input asp-for="Email" class="form-control" placeholder="ops@acme.com" />
+        <span asp-validation-for="Email" class="text-danger small"></span>
+    </div>
+    <div class="col-md-5">
+        <cj-label asp-for="Lei"></cj-label>
+        <input asp-for="Lei" class="form-control" placeholder="20-character ISO 17442 LEI" maxlength="20" />
+        <p class="form-text cj-scope small mb-0">Required for corporate payees on FPS / CHAPS / CHAPS cross-scheme / SWIFT.</p>
+    </div>
+</div>

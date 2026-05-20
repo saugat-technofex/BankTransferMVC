@@ -5,6 +5,12 @@
 
 <cj-feature feature-key="virtualIban"></cj-feature>
 
+<partial name="_PageBack" view-data='new ViewDataDictionary(ViewData) {
+    { "BackController", "VirtualIban" },
+    { "BackAction", "Index" },
+    { "BackLabel", "Back to Virtual IBANs" }
+}' />
+
 <div class="card">
     <div class="card-header">
         @Model.CustomerName

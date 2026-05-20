@@ -15,17 +15,20 @@ public class WebhooksController : ControllerBase
     private readonly IClearJunctionSignatureService _signer;
     private readonly ITransferStore _store;
     private readonly ClearJunctionOptions _options;
+    private readonly ICjModeService _mode;
     private readonly ILogger<WebhooksController> _logger;
 
     public WebhooksController(
         IClearJunctionSignatureService signer,
         ITransferStore store,
         IOptions<ClearJunctionOptions> options,
+        ICjModeService mode,
         ILogger<WebhooksController> logger)
     {
         _signer = signer;
         _store = store;
         _options = options.Value;
+        _mode = mode;
         _logger = logger;
     }
 
@@ -50,6 +53,16 @@ public class WebhooksController : ControllerBase
             Amount = note.Amount,
             Payload = body
         });
+
+        // Card invoice notifications use the payin endpoint and should also update the
+        // local CardPayin record so its status reflects the gateway's view.
+        var card = _store.GetCardPayin(note.ClientOrder);
+        if (card is not null)
+        {
+            _store.UpdateCardPayinStatus(
+                note.ClientOrder, note.Status,
+                note.SubStatuses.OperStatus, note.SubStatuses.ComplianceStatus);
+        }
 
         _logger.LogInformation("[CJ-WEBHOOK] payin {ClientOrder} {Status}", note.ClientOrder, note.Status);
         return Content(note.OrderReference, "text/plain");
@@ -111,7 +124,7 @@ public class WebhooksController : ControllerBase
         // In sandbox / simulation mode skip signature verification so the
         // simulator can post unsigned payloads. In production this must be
         // enforced unconditionally.
-        if (_options.SimulationMode) return true;
+        if (_mode.IsSimulation) return true;
 
         var date = Request.Headers["Date"].ToString();
         var apiKey = Request.Headers["X-API-KEY"].ToString();

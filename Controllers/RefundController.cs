@@ -1,3 +1,5 @@
+using BankTransferMVC.Integrations.ClearJunction;
+using BankTransferMVC.Integrations.ClearJunction.Models;
 using BankTransferMVC.Models;
 using BankTransferMVC.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,8 +9,13 @@ namespace BankTransferMVC.Controllers;
 public class RefundController : Controller
 {
     private readonly ITransferStore _store;
+    private readonly IClearJunctionClient _cj;
 
-    public RefundController(ITransferStore store) => _store = store;
+    public RefundController(ITransferStore store, IClearJunctionClient cj)
+    {
+        _store = store;
+        _cj = cj;
+    }
 
     public IActionResult Index() => View(_store.ListRefunds());
 
@@ -22,7 +29,7 @@ public class RefundController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public IActionResult Create(CreateRefundViewModel form)
+    public async Task<IActionResult> Create(CreateRefundViewModel form)
     {
         if (!ModelState.IsValid)
         {
@@ -34,20 +41,28 @@ public class RefundController : Controller
         }
 
         var clientOrder = $"REF-{DateTime.UtcNow:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
-        var orderRef = Guid.NewGuid().ToString();
+
+        var resp = await _cj.CreateRefundAsync(new RefundRequest
+        {
+            ClientOrder = clientOrder,
+            RelatedOrderReference = form.OriginalClientOrder,
+            Currency = form.Currency,
+            Amount = form.Amount,
+            Description = form.Reason
+        });
 
         var rec = new RefundRecord
         {
             ClientOrder = clientOrder,
-            OrderReference = orderRef,
+            OrderReference = resp.OrderReference,
             Direction = form.Direction,
             OriginalClientOrder = form.OriginalClientOrder,
             Currency = form.Currency,
             Amount = form.Amount,
             Reason = form.Reason,
-            Status = "created",
-            OperStatus = "pending",
-            ComplianceStatus = "pending"
+            Status = resp.Status,
+            OperStatus = resp.SubStatuses.OperStatus,
+            ComplianceStatus = resp.SubStatuses.ComplianceStatus
         };
         _store.AddRefund(rec);
 
@@ -55,10 +70,10 @@ public class RefundController : Controller
         {
             Type = $"refund.{form.Direction}",
             ClientOrder = clientOrder,
-            OrderReference = orderRef,
-            Status = "created",
-            OperStatus = "pending",
-            ComplianceStatus = "pending",
+            OrderReference = resp.OrderReference,
+            Status = resp.Status,
+            OperStatus = resp.SubStatuses.OperStatus,
+            ComplianceStatus = resp.SubStatuses.ComplianceStatus,
             Currency = form.Currency,
             Amount = form.Amount,
             Payload = $"Refund of {form.OriginalClientOrder} — reason: {form.Reason}"

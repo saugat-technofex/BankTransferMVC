@@ -35,6 +35,13 @@ public static class CjDescriptions
             Summary = "Overview of virtual IBANs, pay-ins, FX conversions, and pay-outs. All flows use API v7 with clientOrder idempotency and webhook notifications.",
             Flow = "Allocate vIBAN → receive pay-in → optional FX → create payout → track status via webhooks."
         },
+        ["settings"] = new()
+        {
+            Title = "Integration mode & simulator settings",
+            Summary = "Switch between Simulation (in-process fake) and Live (real CJ REST API) modes at runtime. Tune simulator latency, scenarios, and lifecycle auto-advance. Inspect the last 50 CJ API calls for debugging.",
+            Endpoint = "Local — does not call Clear Junction (except connectivity test)",
+            Flow = "Pick mode → adjust simulator knobs → submit a payout to see the call log populate."
+        },
         ["virtualIban"] = new()
         {
             Title = "Virtual IBAN allocation",
@@ -414,6 +421,29 @@ public static class CjDescriptions
         ["check.iban"] = F(
             "IBAN to verify for SEPA reachability before submitting a SEPA payout.",
             "DE89370400440532013000", "SEPA"),
+
+        // Entity sub-blocks (shared across forms)
+        ["entity.type"] = F(
+            "Selects the individual or corporate sub-block for the payer/payee/registrant/holder.",
+            "individual", "Mandatory",
+            "Drives client-side visibility and server-side conditional validation."),
+        ["entity.firstName"] = F("Given name on the individual KYC record.", "Julie", "Conditional (individual)"),
+        ["entity.lastName"] = F("Family name on the individual KYC record.", "Peterson", "Conditional (individual)"),
+        ["entity.birthDate"] = F("Date of birth for the individual.", "1990-01-01", "Conditional (individual)"),
+        ["entity.birthPlace"] = F("Place of birth for SWIFT travel-rule attestation.", "London", "Conditional (SWIFT individual)"),
+        ["entity.corporateName"] = F("Legal name of the corporate entity.", "Acme Ltd", "Conditional (corporate)"),
+        ["entity.registrationNumber"] = F("Company / charity registration number.", "12345678", "Conditional (corporate)"),
+        ["entity.incorporationCountry"] = F("Country in which the corporate entity is incorporated.", "GB", "Conditional (corporate)"),
+        ["entity.lei"] = F("ISO 17442 Legal Entity Identifier (20-character alphanumeric).", "529900T8BM49AURSDO55",
+            "Conditional (FPS/CHAPS/SWIFT corporate)",
+            "Mandatory for corporate payees on UK and cross-border rails."),
+
+        // SWIFT institution
+        ["institution.bankSwiftCode"] = F("Beneficiary bank BIC (8 or 11 chars).", "BOFAUS3N", "Conditional (SWIFT)"),
+        ["institution.bankName"] = F("Beneficiary bank legal name.", "Bank of America", "Conditional (SWIFT)"),
+        ["institution.country"] = F("Beneficiary bank country.", "US", "Conditional (SWIFT)"),
+        ["institution.clearingSystem"] = F("Local clearing system code (ABA, CHIPS, FedWire, CHAPS).", "ABA", "Optional (SWIFT)"),
+        ["institution.memberId"] = F("Clearing member id; pair with clearing system.", "026009593", "Optional (SWIFT)"),
     };
 
     static CjFieldHelp F(string desc, string? sample = null, string? required = null, string? scope = null) =>

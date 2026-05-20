@@ -1,4 +1,5 @@
 @inject Microsoft.Extensions.Options.IOptions<BankTransferMVC.Integrations.ClearJunction.ClearJunctionOptions> CjOptions
+@inject BankTransferMVC.Services.ICjModeService CjMode
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,86 +23,120 @@
             </div>
 
             @{
-                var ctx = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-                bool On(params string[] cs) => cs.Any(c => string.Equals(c, ctx, StringComparison.OrdinalIgnoreCase));
+                var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+                var act = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+                bool RouteIs(string controller, params string[] actions) =>
+                    string.Equals(ctrl, controller, StringComparison.OrdinalIgnoreCase)
+                    && (actions.Length == 0
+                        || actions.Any(a => string.Equals(act, a, StringComparison.OrdinalIgnoreCase)));
+
+                bool CtrlIs(params string[] controllers) =>
+                    controllers.Any(c => string.Equals(c, ctrl, StringComparison.OrdinalIgnoreCase));
+
+                string A(string c, params string[] actions) => RouteIs(c, actions) ? "active" : "";
+
+                bool grpAccounts = CtrlIs("Accounts");
+                bool grpPayin = CtrlIs("VirtualIban", "Payin");
+                bool grpFx = CtrlIs("Fx");
+                bool grpPayout = CtrlIs("Payout", "Refund");
+                bool grpCompliance = CtrlIs("Compliance");
+                bool grpReports = CtrlIs("Reports", "Reference");
+
                 string Show(bool open) => open ? "show" : "";
                 string Coll(bool open) => open ? "" : "collapsed";
             }
             <nav class="sidebar-nav">
-                <a class="nav-link nav-top @(On("Home") ? "active" : "")" asp-controller="Home" asp-action="Index">
+                <a class="nav-link nav-top @A("Home", "Index", "Privacy")" asp-controller="Home" asp-action="Index">
                     <span class="nav-ico">&#9632;</span> Dashboard
                 </a>
 
-                <button class="nav-group-toggle @Coll(On("Accounts"))" data-bs-toggle="collapse" data-bs-target="#grp-accounts">
+                <button class="nav-group-toggle @Coll(grpAccounts) @(grpAccounts ? "active-group" : "")" data-bs-toggle="collapse" data-bs-target="#grp-accounts" aria-expanded="@(grpAccounts ? "true" : "false")">
                     <span class="nav-ico">&#9783;</span> Accounts <span class="caret">&rsaquo;</span>
                 </button>
-                <div id="grp-accounts" class="collapse @Show(On("Accounts"))">
-                    <a class="nav-link sub" asp-controller="Accounts" asp-action="Index">Wallets</a>
-                    <a class="nav-link sub" asp-controller="Accounts" asp-action="Create">Open wallet</a>
-                    <a class="nav-link sub" asp-controller="Accounts" asp-action="Transfer">Internal transfer</a>
+                <div id="grp-accounts" class="collapse @Show(grpAccounts)">
+                    <a class="nav-link sub @A("Accounts", "Index", "Details", "Statement", "Create")" asp-controller="Accounts" asp-action="Index">Wallets</a>
+                    <a class="nav-link sub @A("Accounts", "Transfer")" asp-controller="Accounts" asp-action="Transfer">Internal transfer</a>
                 </div>
 
-                <button class="nav-group-toggle @Coll(On("VirtualIban", "Payin"))" data-bs-toggle="collapse" data-bs-target="#grp-payin">
+                <button class="nav-group-toggle @Coll(grpPayin) @(grpPayin ? "active-group" : "")" data-bs-toggle="collapse" data-bs-target="#grp-payin" aria-expanded="@(grpPayin ? "true" : "false")">
                     <span class="nav-ico">&#8595;</span> Pay-in <span class="caret">&rsaquo;</span>
                 </button>
-                <div id="grp-payin" class="collapse @Show(On("VirtualIban", "Payin"))">
-                    <a class="nav-link sub" asp-controller="VirtualIban" asp-action="Index">Virtual IBANs</a>
-                    <a class="nav-link sub" asp-controller="VirtualIban" asp-action="Create">Allocate IBAN</a>
-                    <a class="nav-link sub" asp-controller="Payin" asp-action="Index">Bank pay-in events</a>
-                    <a class="nav-link sub" asp-controller="Payin" asp-action="Simulate">Simulate bank pay-in</a>
-                    <a class="nav-link sub" asp-controller="Payin" asp-action="CardList">Card invoices</a>
-                    <a class="nav-link sub" asp-controller="Payin" asp-action="Card">New card invoice</a>
+                <div id="grp-payin" class="collapse @Show(grpPayin)">
+                    <a class="nav-link sub @A("VirtualIban", "Index", "Details", "Create")" asp-controller="VirtualIban" asp-action="Index">Virtual IBANs</a>
+                    <a class="nav-link sub @A("Payin", "Index", "Simulate")" asp-controller="Payin" asp-action="Index">Bank pay-in events</a>
+                    <a class="nav-link sub @A("Payin", "CardList", "Card")" asp-controller="Payin" asp-action="CardList">Card invoices</a>
                 </div>
 
-                <button class="nav-group-toggle @Coll(On("Fx"))" data-bs-toggle="collapse" data-bs-target="#grp-fx">
+                <button class="nav-group-toggle @Coll(grpFx) @(grpFx ? "active-group" : "")" data-bs-toggle="collapse" data-bs-target="#grp-fx" aria-expanded="@(grpFx ? "true" : "false")">
                     <span class="nav-ico">&#8644;</span> Multi-currency <span class="caret">&rsaquo;</span>
                 </button>
-                <div id="grp-fx" class="collapse @Show(On("Fx"))">
-                    <a class="nav-link sub" asp-controller="Fx" asp-action="Index">FX quote &amp; convert</a>
-                    <a class="nav-link sub" asp-controller="Fx" asp-action="History">FX history</a>
+                <div id="grp-fx" class="collapse @Show(grpFx)">
+                    <a class="nav-link sub @A("Fx", "Index", "Quote", "Execute")" asp-controller="Fx" asp-action="Index">FX quote &amp; convert</a>
+                    <a class="nav-link sub @A("Fx", "History")" asp-controller="Fx" asp-action="History">FX history</a>
                 </div>
 
-                <button class="nav-group-toggle @Coll(On("Payout", "Refund"))" data-bs-toggle="collapse" data-bs-target="#grp-payout">
+                <button class="nav-group-toggle @Coll(grpPayout) @(grpPayout ? "active-group" : "")" data-bs-toggle="collapse" data-bs-target="#grp-payout" aria-expanded="@(grpPayout ? "true" : "false")">
                     <span class="nav-ico">&#8593;</span> Pay-out &amp; refund <span class="caret">&rsaquo;</span>
                 </button>
-                <div id="grp-payout" class="collapse @Show(On("Payout", "Refund"))">
-                    <a class="nav-link sub" asp-controller="Payout" asp-action="Index">Payouts</a>
-                    <a class="nav-link sub" asp-controller="Payout" asp-action="Create">New payout</a>
-                    <a class="nav-link sub" asp-controller="Refund" asp-action="Index">Refunds</a>
-                    <a class="nav-link sub" asp-controller="Refund" asp-action="Create">New refund</a>
+                <div id="grp-payout" class="collapse @Show(grpPayout)">
+                    <a class="nav-link sub @A("Payout", "Index", "Details", "Refresh", "Create")" asp-controller="Payout" asp-action="Index">Payouts</a>
+                    <a class="nav-link sub @A("Refund", "Index", "Create")" asp-controller="Refund" asp-action="Index">Refunds</a>
                 </div>
 
-                <button class="nav-group-toggle @Coll(On("Compliance"))" data-bs-toggle="collapse" data-bs-target="#grp-compliance">
+                <button class="nav-group-toggle @Coll(grpCompliance) @(grpCompliance ? "active-group" : "")" data-bs-toggle="collapse" data-bs-target="#grp-compliance" aria-expanded="@(grpCompliance ? "true" : "false")">
                     <span class="nav-ico">&#9873;</span> Compliance <span class="caret">&rsaquo;</span>
                 </button>
-                <div id="grp-compliance" class="collapse @Show(On("Compliance"))">
-                    <a class="nav-link sub" asp-controller="Compliance" asp-action="Index">Requisite checks</a>
-                    <a class="nav-link sub" asp-controller="Compliance" asp-action="History">Check history</a>
-                    <a class="nav-link sub" asp-controller="Compliance" asp-action="Approvals">Maker-checker approvals</a>
+                <div id="grp-compliance" class="collapse @Show(grpCompliance)">
+                    <a class="nav-link sub @A("Compliance", "Index", "Check")" asp-controller="Compliance" asp-action="Index">Requisite checks</a>
+                    <a class="nav-link sub @A("Compliance", "History")" asp-controller="Compliance" asp-action="History">Check history</a>
+                    <a class="nav-link sub @A("Compliance", "Approvals", "Approve", "Cancel")" asp-controller="Compliance" asp-action="Approvals">Maker-checker approvals</a>
                 </div>
 
-                <button class="nav-group-toggle @Coll(On("Reports") || On("Reference"))" data-bs-toggle="collapse" data-bs-target="#grp-reports">
+                <button class="nav-group-toggle @Coll(grpReports) @(grpReports ? "active-group" : "")" data-bs-toggle="collapse" data-bs-target="#grp-reports" aria-expanded="@(grpReports ? "true" : "false")">
                     <span class="nav-ico">&#9783;</span> Reports &amp; events <span class="caret">&rsaquo;</span>
                 </button>
-                <div id="grp-reports" class="collapse @Show(On("Reports") || On("Reference"))">
-                    <a class="nav-link sub" asp-controller="Reports" asp-action="Index">Transaction report</a>
-                    <a class="nav-link sub" asp-controller="Reports" asp-action="Events">Webhook events</a>
-                    <a class="nav-link sub" asp-controller="Reference" asp-action="Index">Reference catalog</a>
+                <div id="grp-reports" class="collapse @Show(grpReports)">
+                    <a class="nav-link sub @A("Reports", "Index", "Results")" asp-controller="Reports" asp-action="Index">Transaction report</a>
+                    <a class="nav-link sub @A("Reports", "Events")" asp-controller="Reports" asp-action="Events">Webhook events</a>
+                    <a class="nav-link sub @A("Reference", "Index")" asp-controller="Reference" asp-action="Index">Reference catalog</a>
                 </div>
+
+                <a class="nav-link nav-top @A("Settings", "Index", "ToggleMode", "UpdateSimulation", "TestConnectivity", "ClearCallLog", "ResetState")" asp-controller="Settings" asp-action="Index">
+                    <span class="nav-ico">&#9881;</span> Settings &amp; mode
+                </a>
             </nav>
 
             <div class="sidebar-footer">
-                <div class="env-pill @(CjOptions.Value.SimulationMode ? "env-sim" : "env-live")">
-                    @(CjOptions.Value.SimulationMode ? "SIMULATION MODE" : "LIVE MODE")
-                </div>
+                <a class="env-pill-link" asp-controller="Settings" asp-action="Index" title="Open mode settings">
+                    <div class="env-pill @(CjMode.IsSimulation ? "env-sim" : "env-live")">
+                        @(CjMode.IsSimulation ? "SIMULATION MODE" : "LIVE MODE")
+                    </div>
+                </a>
                 <div class="env-host" title="@CjOptions.Value.BaseUrl">@CjOptions.Value.BaseUrl</div>
+                @if (CjMode.IsSimulation && CjMode.Simulation.Scenario != "success")
+                {
+                    <div class="env-scenario">scenario: @CjMode.Simulation.Scenario</div>
+                }
             </div>
         </aside>
 
         <main class="main">
+            @if (!CjMode.IsSimulation)
+            {
+                <div class="live-banner" role="alert">
+                    <strong>LIVE MODE</strong> &mdash; every action below calls Clear Junction's real API with signed requests.
+                    <a asp-controller="Settings" asp-action="Index" class="ms-2">Switch back to Simulation</a>
+                </div>
+            }
             <header class="topbar">
                 <div class="topbar-title">@ViewData["Title"]</div>
-                <div class="topbar-meta">v7 gate ? @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm 'UTC'")</div>
+                <div class="topbar-meta">
+                    v7 gate &middot; @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm 'UTC'") &middot;
+                    <span class="@(CjMode.IsSimulation ? "text-info" : "text-danger") fw-semibold">
+                        @(CjMode.IsSimulation ? "simulator" : "live")
+                    </span>
+                </div>
             </header>
 
             @if (TempData["Success"] is string ok)
@@ -124,9 +159,13 @@
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/tom-select/tom-select.complete.min.js"></script>
+    <script src="~/js/cj-validators.js" asp-append-version="true"></script>
     <script src="~/js/cj-lookup.js" asp-append-version="true"></script>
+    <script src="~/js/cj-conditions.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -9,44 +9,54 @@
 
 <cj-feature feature-key="refundCreate"></cj-feature>
 
+<partial name="_PageBack" view-data='new ViewDataDictionary(ViewData) {
+    { "BackController", "Refund" },
+    { "BackAction", "Index" },
+    { "BackLabel", "Back to Refunds" }
+}' />
+
 <form asp-action="Create" method="post">
     @Html.AntiForgeryToken()
+    <partial name="_CjValidationSummary" />
+
     <div class="card">
-        <div class="card-header">Refund instruction <span class="cj-section-hint">/v7/gate/refund</span></div>
+        <div class="card-header">Refund instruction <span class="cj-section-hint">POST /v7/gate/refund (no <em>direction</em> on the wire)</span></div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label asp-for="Direction" class="form-label"></label>
+                    <cj-label asp-for="Direction" text="Refund kind"></cj-label>
                     <cj-lookup asp-for="Direction" kind="refundDirection"></cj-lookup>
                     <cj-help for-key="refund.direction"></cj-help>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="OriginalClientOrder" class="form-label"></label>
-                    <input asp-for="OriginalClientOrder" class="form-control" list="origRefs" placeholder="PAY-… or IBAN-…" />
+                    <cj-label asp-for="OriginalClientOrder"></cj-label>
+                    <input asp-for="OriginalClientOrder" class="form-control" list="origRefs" placeholder="PAY-... or IBAN-..." />
                     <datalist id="origRefs">
-                        @foreach (var p in payouts) { <option value="@p.ClientOrder">payout @p.Amount.ToString("N2") @p.Currency → @p.PayeeName</option> }
+                        @foreach (var p in payouts) { <option value="@p.ClientOrder">payout @p.Amount.ToString("N2") @p.Currency to @p.PayeeName</option> }
                         @foreach (var e in payins) { <option value="@e.ClientOrder">payin @e.Amount.ToString("N2") @e.Currency</option> }
                     </datalist>
                     <cj-help for-key="refund.originalClientOrder"></cj-help>
+                    <span asp-validation-for="OriginalClientOrder" class="text-danger small"></span>
                 </div>
                 <div class="col-md-2">
-                    <label asp-for="Currency" class="form-label"></label>
+                    <cj-label asp-for="Currency"></cj-label>
                     <cj-lookup asp-for="Currency" kind="currency"></cj-lookup>
                 </div>
                 <div class="col-md-2">
-                    <label asp-for="Amount" class="form-label"></label>
+                    <cj-label asp-for="Amount"></cj-label>
                     <input asp-for="Amount" class="form-control" />
+                    <span asp-validation-for="Amount" class="text-danger small"></span>
                 </div>
                 <div class="col-md-12">
-                    <label asp-for="Reason" class="form-label"></label>
+                    <cj-label asp-for="Reason"></cj-label>
                     <input asp-for="Reason" class="form-control" />
                     <cj-help for-key="refund.reason"></cj-help>
+                    <span asp-validation-for="Reason" class="text-danger small"></span>
                 </div>
             </div>
         </div>
     </div>
+
     <button type="submit" class="btn btn-primary">Submit refund</button>
     <a class="btn btn-link" asp-action="Index">Cancel</a>
 </form>
-
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -29,9 +29,17 @@ public interface ITransferStore
 
     void AddCardPayin(CardPayinRecord record);
     IReadOnlyList<CardPayinRecord> ListCardPayins();
+    CardPayinRecord? GetCardPayin(string clientOrder);
+    void UpdateCardPayinStatus(string clientOrder, string status, string operStatus, string complianceStatus);
 
     void AddRequisiteCheck(RequisiteCheckRecord record);
     IReadOnlyList<RequisiteCheckRecord> ListRequisiteChecks();
+
+    RefundRecord? GetRefund(string clientOrder);
+    void UpdateRefundStatus(string clientOrder, string status, string operStatus, string complianceStatus);
+
+    /// <summary>Wipe every in-memory record. Used by the Settings page when resetting simulator state.</summary>
+    void Reset();
 }
 
 public class InMemoryTransferStore : ITransferStore
@@ -79,7 +87,42 @@ public class InMemoryTransferStore : ITransferStore
 
     public void AddCardPayin(CardPayinRecord record) => _cardPayins.Add(record);
     public IReadOnlyList<CardPayinRecord> ListCardPayins() => _cardPayins.OrderByDescending(x => x.CreatedAt).ToList();
+    public CardPayinRecord? GetCardPayin(string clientOrder) =>
+        _cardPayins.FirstOrDefault(c => string.Equals(c.ClientOrder, clientOrder, StringComparison.OrdinalIgnoreCase));
+    public void UpdateCardPayinStatus(string clientOrder, string status, string operStatus, string complianceStatus)
+    {
+        var rec = GetCardPayin(clientOrder);
+        if (rec is null) return;
+        rec.Status = status;
+        rec.OperStatus = operStatus;
+        rec.ComplianceStatus = complianceStatus;
+    }
 
     public void AddRequisiteCheck(RequisiteCheckRecord record) => _checks.Add(record);
     public IReadOnlyList<RequisiteCheckRecord> ListRequisiteChecks() => _checks.OrderByDescending(x => x.CheckedAt).ToList();
+
+    public RefundRecord? GetRefund(string clientOrder) =>
+        _refunds.FirstOrDefault(r => string.Equals(r.ClientOrder, clientOrder, StringComparison.OrdinalIgnoreCase));
+
+    public void UpdateRefundStatus(string clientOrder, string status, string operStatus, string complianceStatus)
+    {
+        var rec = GetRefund(clientOrder);
+        if (rec is null) return;
+        rec.Status = status;
+        rec.OperStatus = operStatus;
+        rec.ComplianceStatus = complianceStatus;
+    }
+
+    public void Reset()
+    {
+        _ibans.Clear();
+        _payouts.Clear();
+        _wallets.Clear();
+
+        while (_fx.TryTake(out _)) { }
+        while (_events.TryTake(out _)) { }
+        while (_refunds.TryTake(out _)) { }
+        while (_cardPayins.TryTake(out _)) { }
+        while (_checks.TryTake(out _)) { }
+    }
 }
