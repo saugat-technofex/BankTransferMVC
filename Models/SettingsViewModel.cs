@@ -10,6 +10,7 @@ public class SettingsViewModel
     public string ApiKeyMasked { get; set; } = "";
     public bool HasApiPassword { get; set; }
     public string PostbackBaseUrl { get; set; } = "";
+    public string DefaultWalletUuid { get; set; } = "";
     public DateTimeOffset LastChangedAt { get; set; }
     public string LastChangedBy { get; set; } = "";
 

@@ -61,6 +61,9 @@ public class CjPartyViewModel
     [EmailAddress, Display(Name = "Contact email")]
     public string? Email { get; set; }
 
+    [Phone, Display(Name = "Phone (E.164)")]
+    public string? Phone { get; set; }
+
     // address
     [Display(Name = "Country")] public string? Country { get; set; }
     [Display(Name = "Street")] public string? Street { get; set; }
@@ -71,6 +74,19 @@ public class CjPartyViewModel
         string.Equals(EntityType, "corporate", StringComparison.OrdinalIgnoreCase)
             ? CorporateName ?? ""
             : string.Join(" ", new[] { FirstName, LastName }.Where(s => !string.IsNullOrWhiteSpace(s)));
+
+    /// <summary>
+    /// Address <see cref="Country"/> is separate from IBAN country / incorporation country.
+    /// When the address country lookup was not posted (e.g. Tom Select) copy from the best available source.
+    /// </summary>
+    public void FillAddressCountryIfEmpty(string? ibanOrPrimary, string? entitySpecific = null)
+    {
+        if (!string.IsNullOrWhiteSpace(Country)) return;
+        if (!string.IsNullOrWhiteSpace(ibanOrPrimary))
+            Country = ibanOrPrimary.Trim();
+        else if (!string.IsNullOrWhiteSpace(entitySpecific))
+            Country = entitySpecific.Trim();
+    }
 }
 
 /// <summary>SWIFT institution block (POST .../bankTransfer/swift). All fields required on SWIFT rail.</summary>

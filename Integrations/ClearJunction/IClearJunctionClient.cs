@@ -46,4 +46,6 @@ public interface IClearJunctionClient
     Task<ConnectivityResult> TestConnectivityAsync(CancellationToken ct = default);
 }
 
-public sealed record ConnectivityResult(bool Ok, int? StatusCode, long ElapsedMs, string Detail);
+/// <param name="Ok">True only when the probe reached CJ and auth/response looks healthy (2xx, or 4xx validation on a real route).</param>
+/// <param name="Probe">HTTP method + path that was tried last (or succeeded).</param>
+public sealed record ConnectivityResult(bool Ok, int? StatusCode, long ElapsedMs, string Detail, string? Probe = null);

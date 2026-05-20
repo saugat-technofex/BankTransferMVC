@@ -23,6 +23,13 @@ public class CreateIbanViewModel : IValidatableObject
     [Required, Display(Name = "Client customer id")]
     public string ClientCustomerId { get; set; } = "";
 
+    /// <summary>
+    /// The CJ wallet this IBAN will be linked to. Leave blank to use the
+    /// DefaultWalletUuid from configuration.
+    /// </summary>
+    [Display(Name = "Wallet UUID (leave blank for default)")]
+    public string? WalletUuid { get; set; }
+
     [Required, Display(Name = "IBAN country")]
     public string IbanCountry { get; set; } = "GB";
 
@@ -43,7 +50,9 @@ public class CreateIbanViewModel : IValidatableObject
         if (string.IsNullOrWhiteSpace(r.Zip))
             yield return new ValidationResult("Registrant zip is required.", new[] { "Registrant.Zip" });
         if (string.IsNullOrWhiteSpace(r.Country))
-            yield return new ValidationResult("Registrant country is required.", new[] { "Registrant.Country" });
+            yield return new ValidationResult(
+                "Registrant address country is required (in the address section — not the same as IBAN country or incorporation country).",
+                new[] { "Registrant.Country" });
         if (string.IsNullOrWhiteSpace(r.Email))
             yield return new ValidationResult("Registrant email is required.", new[] { "Registrant.Email" });
     }

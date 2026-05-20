@@ -50,12 +50,16 @@
     <div class="card">
         <div class="card-header">Registrant address <span class="cj-section-hint">registrant.{individual|corporate}.address</span></div>
         <div class="card-body">
+            <p class="form-text cj-scope small mb-3">
+                Address country is required here. It is <strong>not</strong> the same field as
+                <em>IBAN country</em> (below) or <em>incorporation country</em> on corporate registrants.
+            </p>
             <partial name="_CjAddress" for="Registrant" />
         </div>
     </div>
 
     <div class="card">
-        <div class="card-header">IBAN options <span class="cj-section-hint">walletUuid auto-generated on submit</span></div>
+        <div class="card-header">IBAN options <span class="cj-section-hint">POST /v7/gate/allocate/v3/create/iban</span></div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-4">
@@ -67,6 +71,16 @@
                     <cj-label asp-for="IbansGroup"></cj-label>
                     <cj-lookup asp-for="IbansGroup" kind="ibansGroup" placeholder="Select IBAN pool..."></cj-lookup>
                     <cj-help for-key="iban.ibansGroup"></cj-help>
+                </div>
+                <div class="col-md-4">
+                    <cj-label asp-for="WalletUuid"></cj-label>
+                    <input asp-for="WalletUuid" class="form-control font-monospace"
+                           placeholder="@(ViewBag.DefaultWalletUuid ?? "uses DefaultWalletUuid from config")"
+                           autocomplete="off" />
+                    <p class="form-text small mb-0">
+                        The CJ wallet this IBAN is linked to. Leave blank to use
+                        <code>DefaultWalletUuid</code> from <code>appsettings.json</code>.
+                    </p>
                 </div>
             </div>
         </div>

@@ -69,6 +69,19 @@
         (root || document).querySelectorAll('select[data-cj-lookup]').forEach(initSelect);
     }
 
+    function syncTomSelectValues(form) {
+        if (!form) return;
+        form.querySelectorAll('select[data-cj-lookup]').forEach(function (el) {
+            var ts = el.tomselect;
+            if (ts && typeof ts.sync === 'function') ts.sync();
+        });
+    }
+
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (form && form.tagName === 'FORM') syncTomSelectValues(form);
+    }, true);
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () { initAll(); });
     } else {
@@ -76,5 +89,5 @@
     }
 
     // Expose for dynamic re-init (e.g. after partial refresh).
-    window.cjLookup = { init: initAll };
+    window.cjLookup = { init: initAll, sync: syncTomSelectValues };
 })();

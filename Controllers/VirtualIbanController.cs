@@ -32,6 +32,7 @@ public class VirtualIbanController : Controller
     {
         ViewBag.ExistingCustomerIds = _store.ListWallets()
             .Select(w => w.ClientCustomerId).Distinct().ToList();
+        ViewBag.DefaultWalletUuid = _options.DefaultWalletUuid;
 
         return View(new CreateIbanViewModel
         {
@@ -60,10 +61,20 @@ public class VirtualIbanController : Controller
             ModelState.Remove(nameof(form.ClientCustomerId));
         }
 
+        var registrant = form.Registrant;
+        registrant.FillAddressCountryIfEmpty(
+            form.IbanCountry,
+            string.Equals(registrant.EntityType, "corporate", StringComparison.OrdinalIgnoreCase)
+                ? registrant.IncorporationCountry
+                : registrant.BirthCountry);
+        if (!string.IsNullOrWhiteSpace(registrant.Country))
+            ModelState.Remove("Registrant.Country");
+
         if (!ModelState.IsValid)
         {
             ViewBag.ExistingCustomerIds = _store.ListWallets()
                 .Select(w => w.ClientCustomerId).Distinct().ToList();
+            ViewBag.DefaultWalletUuid = _options.DefaultWalletUuid;
             return View(form);
         }
 
@@ -99,17 +110,24 @@ public class VirtualIbanController : Controller
             {
                 FirstName = r.FirstName ?? "",
                 LastName = r.LastName ?? "",
+                Phone = r.Phone ?? "",
                 Email = r.Email ?? "",
                 BirthDate = (r.BirthDate ?? new DateTime(1990, 1, 1)).ToString("yyyy-MM-dd"),
+                BirthPlace = r.BirthPlace,
                 Address = address
             };
         }
+
+        // WalletUuid must be your existing CJ wallet, not a random guid.
+        var walletUuid = string.IsNullOrWhiteSpace(form.WalletUuid)
+            ? _options.DefaultWalletUuid
+            : form.WalletUuid;
 
         var request = new AllocateIbanRequest
         {
             ClientOrder = clientOrder,
             PostbackUrl = BuildPostbackUrl("/webhooks/cj/iban"),
-            WalletUuid = Guid.NewGuid().ToString(),
+            WalletUuid = walletUuid,
             IbanCountry = form.IbanCountry,
             IbansGroup = form.IbansGroup,
             Registrant = registrantEntity
@@ -123,7 +141,7 @@ public class VirtualIbanController : Controller
             OrderReference = resp.OrderReference,
             Iban = resp.Iban ?? "",
             Country = form.IbanCountry,
-            WalletUuid = request.WalletUuid ?? "",
+            WalletUuid = walletUuid,
             CustomerName = r.DisplayName(),
             ClientCustomerId = form.ClientCustomerId,
             Status = resp.Status

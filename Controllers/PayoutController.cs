@@ -208,8 +208,10 @@ public class PayoutController : Controller
             {
                 FirstName = party.FirstName ?? "",
                 LastName = party.LastName ?? "",
+                Phone = party.Phone ?? "",
                 Email = party.Email ?? "",
                 BirthDate = (party.BirthDate ?? new DateTime(1990, 1, 1)).ToString("yyyy-MM-dd"),
+                BirthPlace = party.BirthPlace,
                 Address = address
             };
         }

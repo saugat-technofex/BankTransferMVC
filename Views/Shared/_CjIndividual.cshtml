@@ -31,6 +31,12 @@
         <span asp-validation-for="Email" class="text-danger small"></span>
     </div>
     <div class="col-md-4">
+        <cj-label asp-for="Phone"></cj-label>
+        <input asp-for="Phone" class="form-control" placeholder="+39 02 1234567" />
+        <span asp-validation-for="Phone" class="text-danger small"></span>
+        <p class="form-text cj-scope small mb-0">E.164 format. Required by CJ for individual registrants.</p>
+    </div>
+    <div class="col-md-4">
         <cj-label asp-for="BirthPlace"></cj-label>
         <input asp-for="BirthPlace" class="form-control" placeholder="London" />
         <p class="form-text cj-scope small mb-0">Required for SWIFT corridors.</p>

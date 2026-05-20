@@ -179,31 +179,123 @@ public class ClearJunctionClient : IClearJunctionClient
     public async Task<ConnectivityResult> TestConnectivityAsync(CancellationToken ct = default)
     {
         if (_mode.IsSimulation)
-            return new ConnectivityResult(true, 200, 0, "Simulation mode — no network call made.");
+            return new ConnectivityResult(true, 200, 0, "Simulation mode — no network call made.", "n/a");
 
+        // v7/gate/info is not a documented CJ route — Apiary mocks return 404 for it.
+        var probes = new List<Func<CancellationToken, Task<ConnectivityResult>>>();
+
+        if (!string.IsNullOrWhiteSpace(_options.DefaultWalletUuid))
+        {
+            var walletPath = $"v7/gate/wallets/{_options.DefaultWalletUuid.Trim()}";
+            probes.Add(ct => ProbeGetAsync(walletPath, ct));
+        }
+
+        probes.Add(ct => ProbePostAsync(
+            "v7/gate/fx/instant/rate",
+            new FxRateRequest { SellCurrency = "EUR", BuyCurrency = "GBP" },
+            ct));
+
+        ConnectivityResult? last = null;
+        foreach (var probe in probes)
+        {
+            var result = await probe(ct);
+            last = result;
+            if (result.Ok || result.StatusCode is 401 or 403)
+                return result;
+        }
+
+        return last ?? new ConnectivityResult(
+            false, null, 0,
+            "No connectivity probe could be run — set DefaultWalletUuid in appsettings or check BaseUrl.",
+            null);
+    }
+
+    private async Task<ConnectivityResult> ProbeGetAsync(string path, CancellationToken ct)
+    {
         var sw = Stopwatch.StartNew();
         try
         {
-            using var probe = new HttpRequestMessage(HttpMethod.Get, "v7/gate/info");
-            ApplyAuthHeaders(probe, DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"), "");
-            using var resp = await _http.SendAsync(probe, ct);
+            var date = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+            using var req = new HttpRequestMessage(HttpMethod.Get, path);
+            ApplyAuthHeaders(req, date, string.Empty);
+            using var resp = await _http.SendAsync(req, ct);
             sw.Stop();
-            Log("GET", "v7/gate/info", (int)resp.StatusCode, sw.ElapsedMilliseconds, null,
-                resp.IsSuccessStatusCode ? "ok" : null, resp.IsSuccessStatusCode ? null : resp.ReasonPhrase);
-            return new ConnectivityResult(
-                resp.IsSuccessStatusCode || resp.StatusCode == System.Net.HttpStatusCode.NotFound,
-                (int)resp.StatusCode,
-                sw.ElapsedMilliseconds,
-                resp.IsSuccessStatusCode
-                    ? "Live endpoint reachable; credentials accepted."
-                    : $"Endpoint reachable but returned {(int)resp.StatusCode} {resp.ReasonPhrase}.");
+            var body = await resp.Content.ReadAsStringAsync(ct);
+            Log("GET", path, (int)resp.StatusCode, sw.ElapsedMilliseconds, null,
+                resp.IsSuccessStatusCode ? Truncate(body, 200) : null,
+                resp.IsSuccessStatusCode ? null : Truncate(body, 400));
+            return ClassifyConnectivity("GET", path, resp, sw.ElapsedMilliseconds, body);
         }
         catch (Exception ex)
         {
             sw.Stop();
-            Log("GET", "v7/gate/info", null, sw.ElapsedMilliseconds, null, null, ex.Message);
-            return new ConnectivityResult(false, null, sw.ElapsedMilliseconds, ex.Message);
+            Log("GET", path, null, sw.ElapsedMilliseconds, null, null, ex.Message);
+            return new ConnectivityResult(false, null, sw.ElapsedMilliseconds, ex.Message, $"GET {path}");
         }
+    }
+
+    private async Task<ConnectivityResult> ProbePostAsync<T>(string path, T body, CancellationToken ct)
+    {
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            var date = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+            var bodyJson = JsonSerializer.Serialize(body, JsonOptions);
+            using var req = new HttpRequestMessage(HttpMethod.Post, path);
+            req.Content = new StringContent(bodyJson, Encoding.UTF8, "application/json");
+            ApplyAuthHeaders(req, date, bodyJson);
+            using var resp = await _http.SendAsync(req, ct);
+            sw.Stop();
+            var respBody = await resp.Content.ReadAsStringAsync(ct);
+            Log("POST", path, (int)resp.StatusCode, sw.ElapsedMilliseconds, bodyJson,
+                resp.IsSuccessStatusCode ? Truncate(respBody, 200) : null,
+                resp.IsSuccessStatusCode ? null : Truncate(respBody, 400));
+            return ClassifyConnectivity("POST", path, resp, sw.ElapsedMilliseconds, respBody);
+        }
+        catch (Exception ex)
+        {
+            sw.Stop();
+            Log("POST", path, null, sw.ElapsedMilliseconds, null, null, ex.Message);
+            return new ConnectivityResult(false, null, sw.ElapsedMilliseconds, ex.Message, $"POST {path}");
+        }
+    }
+
+    private static ConnectivityResult ClassifyConnectivity(
+        string method, string path, HttpResponseMessage resp, long elapsedMs, string? body)
+    {
+        var code = (int)resp.StatusCode;
+        var probe = $"{method} {path}";
+
+        if (resp.IsSuccessStatusCode)
+            return new ConnectivityResult(
+                true, code, elapsedMs,
+                "Live endpoint reachable; credentials accepted.",
+                probe);
+
+        if (code is 401 or 403)
+            return new ConnectivityResult(
+                false, code, elapsedMs,
+                "Authentication failed — verify ApiKey and ApiPassword match your CJ sandbox.",
+                probe);
+
+        // CJ / Apiary often returns 400 for an incomplete probe body — still proves route + auth work.
+        if (code is 400 or 422)
+            return new ConnectivityResult(
+                true, code, elapsedMs,
+                "Endpoint reachable; CJ returned a validation response (expected for this probe). Credentials likely accepted.",
+                probe);
+
+        if (code == 404)
+            return new ConnectivityResult(
+                false, code, elapsedMs,
+                $"Route not found ({probe}). The Apiary mock may not implement this path — try another documented route or confirm BaseUrl.",
+                probe);
+
+        var snippet = string.IsNullOrWhiteSpace(body) ? "" : $" Response: {Truncate(body, 120)}";
+        return new ConnectivityResult(
+            false, code, elapsedMs,
+            $"{probe} returned {code} {resp.ReasonPhrase}.{snippet}",
+            probe);
     }
 
     // ====================== plumbing ======================

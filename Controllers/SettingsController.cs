@@ -87,7 +87,10 @@ public class SettingsController : Controller
         var result = await _cj.TestConnectivityAsync();
         var vm = BuildVm();
         vm.ConnectivityOk = result.Ok;
-        vm.ConnectivityMessage = $"{(result.Ok ? "OK" : "FAILED")} · {result.ElapsedMs} ms · status {result.StatusCode?.ToString() ?? "n/a"} · {result.Detail}";
+        vm.ConnectivityMessage =
+            $"{(result.Ok ? "OK" : "FAILED")} · {result.ElapsedMs} ms · HTTP {result.StatusCode?.ToString() ?? "n/a"}" +
+            (string.IsNullOrWhiteSpace(result.Probe) ? "" : $" · {result.Probe}") +
+            $" · {result.Detail}";
         return View(nameof(Index), vm);
     }
 
@@ -120,6 +123,7 @@ public class SettingsController : Controller
         HasApiPassword = !string.IsNullOrWhiteSpace(_options.ApiPassword)
             && !string.Equals(_options.ApiPassword, "REPLACE_WITH_CJ_API_PASSWORD", StringComparison.Ordinal),
         PostbackBaseUrl = _options.PostbackBaseUrl,
+        DefaultWalletUuid = _options.DefaultWalletUuid,
         LastChangedAt = _mode.LastChangedAt,
         LastChangedBy = _mode.LastChangedBy,
         Simulation = _mode.Simulation,
@@ -153,6 +157,8 @@ public class SettingsController : Controller
         else if (_options.BaseUrl.Contains("apiary-mock.com", StringComparison.OrdinalIgnoreCase)
               || _options.BaseUrl.Contains("private-anon-", StringComparison.OrdinalIgnoreCase))
             warns.Add("WARN: BaseUrl points at an Apiary mock — responses will not be real CJ data.");
+        if (string.IsNullOrWhiteSpace(_options.DefaultWalletUuid))
+            warns.Add("WARN: DefaultWalletUuid is not set — vIBAN allocations will fail unless a WalletUuid is manually entered on each form.");
         if (string.IsNullOrWhiteSpace(_options.PostbackBaseUrl))
             warns.Add("WARN: PostbackBaseUrl is empty — CJ webhooks won't reach your app.");
         else if (_options.PostbackBaseUrl.StartsWith("http://localhost", StringComparison.OrdinalIgnoreCase)

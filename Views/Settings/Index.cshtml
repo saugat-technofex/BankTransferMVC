@@ -48,6 +48,17 @@
                     }
                 </div>
                 <div><span class="text-muted">Postback:</span> <code>@Model.PostbackBaseUrl</code></div>
+                <div>
+                    <span class="text-muted">Default wallet:</span>
+                    @if (!string.IsNullOrWhiteSpace(Model.DefaultWalletUuid))
+                    {
+                        <code class="small">@Model.DefaultWalletUuid</code>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">not set</span>
+                    }
+                </div>
                 @if (Model.IsSimulation)
                 {
                     <div class="mt-1"><span class="text-muted">Scenario:</span> <code>@sim.Scenario</code></div>
@@ -59,7 +70,7 @@
 
 @if (Model.ConnectivityMessage is not null)
 {
-    <div class="alert @(Model.ConnectivityOk == true ? "alert-success" : "alert-warning") mt-3">
+    <div class="alert @(Model.ConnectivityOk == true ? "alert-success" : Model.ConnectivityOk == false ? "alert-danger" : "alert-warning") mt-3">
         <strong>Connectivity test:</strong> @Model.ConnectivityMessage
     </div>
 }

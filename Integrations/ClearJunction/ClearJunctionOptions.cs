@@ -10,6 +10,12 @@ public class ClearJunctionOptions
     public string PostbackBaseUrl { get; set; } = "";
 
     /// <summary>
+    /// Default wallet that funds payouts and is linked to new vIBAN allocations.
+    /// Set to the wallet UUID from your CJ sandbox/production dashboard.
+    /// </summary>
+    public string DefaultWalletUuid { get; set; } = "";
+
+    /// <summary>
     /// Initial mode at startup. The runtime mode lives in <c>ICjModeService</c> and can be
     /// toggled by users from the Settings page — this option only seeds the first run.
     /// </summary>

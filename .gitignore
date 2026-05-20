@@ -88,3 +88,4 @@ $RECYCLE.BIN/
 **/staticwebassets.development.json
 **/staticwebassets.build.endpoints.json
 **/staticwebassets.pack.json
+postman/

@@ -237,8 +237,10 @@ public class AccountsController : Controller
             {
                 FirstName = h.FirstName ?? "",
                 LastName = h.LastName ?? "",
+                Phone = h.Phone ?? "",
                 Email = h.Email ?? form.Email,
                 BirthDate = (h.BirthDate ?? new DateTime(1990, 1, 1)).ToString("yyyy-MM-dd"),
+                BirthPlace = h.BirthPlace,
                 Address = address
             };
         }
